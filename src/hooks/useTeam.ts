@@ -78,7 +78,9 @@ export function useRemoveTeamMember() {
 
   return useMutation({
     mutationFn: async (userId: string) => {
-      const { error } = await supabase.rpc('remove_team_member', { p_target_user_id: userId })
+      const { error } = await supabase.functions.invoke('remove-team-member', {
+        body: { userId },
+      })
       if (error) throw error
     },
     onSuccess: invalidate,
