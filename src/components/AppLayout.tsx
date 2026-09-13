@@ -99,6 +99,20 @@ export default function AppLayout() {
         >
           {labels.navVentas}
         </NavLink>
+        {(membership?.role === 'administrador' || membership?.role === 'gerente') && (
+          <NavLink
+            to="/inventario"
+            className={({ isActive }) =>
+              `border-b-2 py-3 text-sm font-semibold ${
+                isActive
+                  ? 'border-brand text-brand-dark dark:border-brand-light dark:text-brand-light'
+                  : 'border-transparent text-gray-500 dark:text-gray-400'
+              }`
+            }
+          >
+            Inventario
+          </NavLink>
+        )}
         {membership?.role === 'administrador' && (
           <NavLink
             to="/configuracion"

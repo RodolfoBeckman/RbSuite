@@ -7,6 +7,7 @@ import DashboardPage from './pages/DashboardPage'
 import PosPage from './pages/PosPage'
 import CajaPage from './pages/CajaPage'
 import SalesHistoryPage from './pages/SalesHistoryPage'
+import InventoryPage from './pages/InventoryPage'
 import SettingsPage, {
   BrandingSection,
   BranchesSection,
@@ -26,6 +27,9 @@ export default function App() {
           <Route path="/pos" element={<PosPage />} />
           <Route path="/caja" element={<CajaPage />} />
           <Route path="/ventas" element={<SalesHistoryPage />} />
+          <Route element={<ProtectedRoute allowedRoles={['administrador', 'gerente']} />}>
+            <Route path="/inventario" element={<InventoryPage />} />
+          </Route>
           <Route element={<ProtectedRoute allowedRoles={['administrador']} />}>
             <Route path="/configuracion" element={<SettingsPage />}>
               <Route index element={<Navigate to="marca" replace />} />
