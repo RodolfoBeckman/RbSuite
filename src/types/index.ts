@@ -65,3 +65,41 @@ export interface CashMovement {
   reason: string | null
   createdAt: string
 }
+
+export interface DashboardSummary {
+  total: number
+  salesCount: number
+  openCashSessions: number
+}
+
+export interface BranchSales {
+  branchId: string
+  branchName: string
+  total: number
+}
+
+export interface SalesTrendPoint {
+  day: string
+  total: number
+}
+
+export interface PaymentMethodTotal {
+  method: PaymentMethod
+  total: number
+}
+
+export interface TopItem {
+  name: string
+  itemType: 'product' | 'service'
+  quantity: number
+  total: number
+}
+
+export interface LowStockItem {
+  businessProductId: string
+  name: string
+  branchId: string
+  branchName: string
+  stock: number
+  minimumStock: number
+}
