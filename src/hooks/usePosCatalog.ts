@@ -1,0 +1,71 @@
+import { useQuery } from '@tanstack/react-query'
+import { supabase } from '../lib/supabase'
+import type { CatalogItem } from '../types'
+
+interface BusinessProductRow {
+  id: string
+  sale_price: number
+  product: { name: string } | { name: string }[] | null
+}
+
+async function fetchProducts(branchId: string): Promise<CatalogItem[]> {
+  const { data: businessProducts, error } = await supabase
+    .from('business_products')
+    .select('id, sale_price, product:products_catalog(name)')
+    .eq('active', true)
+    .returns<BusinessProductRow[]>()
+
+  if (error) throw error
+
+  const { data: stockRows, error: stockError } = await supabase
+    .from('inventory_stock')
+    .select('business_product_id, quantity')
+    .eq('branch_id', branchId)
+
+  if (stockError) throw stockError
+
+  const stockByProduct = new Map<string, number>(
+    (stockRows ?? []).map((row) => [row.business_product_id as string, Number(row.quantity)]),
+  )
+
+  return (businessProducts ?? []).map((row) => {
+    const product = Array.isArray(row.product) ? row.product[0] : row.product
+    return {
+      itemType: 'product',
+      id: row.id,
+      name: product?.name ?? 'Producto sin nombre',
+      price: Number(row.sale_price),
+      stock: stockByProduct.get(row.id) ?? 0,
+    }
+  })
+}
+
+async function fetchServices(): Promise<CatalogItem[]> {
+  const { data, error } = await supabase
+    .from('services')
+    .select('id, name, price')
+    .eq('active', true)
+
+  if (error) throw error
+
+  return (data ?? []).map((row) => ({
+    itemType: 'service',
+    id: row.id,
+    name: row.name,
+    price: Number(row.price),
+    stock: null,
+  }))
+}
+
+// Catálogo combinado (productos con stock de la sucursal activa + servicios,
+// que no tienen stock) para la pantalla de venta.
+export function usePosCatalog(branchId: string | null) {
+  return useQuery({
+    queryKey: ['pos-catalog', branchId],
+    queryFn: async (): Promise<CatalogItem[]> => {
+      const [products, services] = await Promise.all([fetchProducts(branchId!), fetchServices()])
+      return [...products, ...services].sort((a, b) => a.name.localeCompare(b.name))
+    },
+    enabled: !!branchId,
+  })
+}

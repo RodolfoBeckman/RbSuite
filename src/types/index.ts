@@ -22,3 +22,19 @@ export interface Branch {
   businessId: string
   name: string
 }
+
+// Item del catálogo del POS: puede ser un producto (con stock por sucursal)
+// o un servicio (sin stock). El id es el de business_products o services
+// según corresponda — nunca el de products_catalog.
+export interface CatalogItem {
+  itemType: 'product' | 'service'
+  id: string
+  name: string
+  price: number
+  stock: number | null
+}
+
+export interface CartLine {
+  item: CatalogItem
+  quantity: number
+}
