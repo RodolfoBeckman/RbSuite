@@ -6,6 +6,7 @@ import DashboardPage from './pages/DashboardPage'
 import PosPage from './pages/PosPage'
 import CajaPage from './pages/CajaPage'
 import SalesHistoryPage from './pages/SalesHistoryPage'
+import SettingsPage from './pages/SettingsPage'
 
 export default function App() {
   return (
@@ -18,6 +19,9 @@ export default function App() {
           <Route path="/pos" element={<PosPage />} />
           <Route path="/caja" element={<CajaPage />} />
           <Route path="/ventas" element={<SalesHistoryPage />} />
+          <Route element={<ProtectedRoute allowedRoles={['administrador']} />}>
+            <Route path="/configuracion" element={<SettingsPage />} />
+          </Route>
         </Route>
       </Route>
     </Routes>

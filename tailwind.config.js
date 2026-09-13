@@ -5,15 +5,17 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Respaldadas por CSS custom properties (ver src/index.css) para
+        // que cada negocio pueda personalizar su color de marca en runtime
+        // (src/theme/useApplyBranding.ts) en vez de un valor fijo de build.
+        // El formato "rgb(var(--x) / <alpha-value>)" es el que exige
+        // Tailwind para que utilidades con opacidad (bg-brand/20) sigan
+        // funcionando.
         brand: {
-          // Alineado al azul del logo (public/logo.svg): #2F6FA8 de marca,
-          // #4FA8E8 como acento claro.
-          DEFAULT: '#2F6FA8',
-          dark: '#1F4E78',
-          // Variante clara de marca, para texto/acentos legibles sobre
-          // fondos oscuros (donde brand.dark se ve casi negro).
-          light: '#4FA8E8',
-          tint: '#EAF3FA',
+          DEFAULT: 'rgb(var(--brand) / <alpha-value>)',
+          dark: 'rgb(var(--brand-dark) / <alpha-value>)',
+          light: 'rgb(var(--brand-light) / <alpha-value>)',
+          tint: 'rgb(var(--brand-tint) / <alpha-value>)',
         },
         gold: '#B58A2A',
         success: '#2F7D57',
