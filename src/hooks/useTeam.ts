@@ -42,8 +42,7 @@ function useInvalidateTeam() {
 // ("Edge Function returned a non-2xx status code") — el mensaje real que
 // arma la función vive en el body de la respuesta, que hay que leer aparte.
 const FRIENDLY_FUNCTION_ERRORS: Record<string, string> = {
-  'email rate limit exceeded':
-    'Supabase alcanzó su límite de correos por ahora. Espera unos minutos e intenta de nuevo.',
+  'email rate limit exceeded': 'Llegaste al límite de envíos de correo, intenta más tarde.',
   'user already registered':
     'Ese correo ya tiene una cuenta. Quítale el acceso desde el equipo antes de volver a invitarlo.',
 }
