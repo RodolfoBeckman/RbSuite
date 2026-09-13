@@ -6,12 +6,12 @@ export default {
     extend: {
       colors: {
         brand: {
-          DEFAULT: '#7B3F56',
-          dark: '#5E2F41',
+          DEFAULT: '#2563EB',
+          dark: '#1E40AF',
           // Variante clara de marca, para texto/acentos legibles sobre
           // fondos oscuros (donde brand.dark se ve casi negro).
-          light: '#C48CA3',
-          tint: '#F4E9EE',
+          light: '#93C5FD',
+          tint: '#EFF6FF',
         },
         gold: '#B58A2A',
         success: '#2F7D57',
