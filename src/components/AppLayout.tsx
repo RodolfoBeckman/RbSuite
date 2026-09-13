@@ -17,7 +17,8 @@ export default function AppLayout() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <header className="flex items-center justify-between bg-brand px-6 py-3.5 text-white">
-        <div className="flex items-baseline gap-2.5">
+        <div className="flex items-center gap-2.5">
+          <img src="/logo-mark.svg" alt="RB Suite" className="h-8 w-8" />
           <span className="font-serif text-xl font-semibold">RB Suite</span>
           <span className="text-sm text-white/75">
             {membership?.branchId ? 'Sucursal asignada' : 'Todas las sucursales'}

@@ -6,12 +6,14 @@ export default {
     extend: {
       colors: {
         brand: {
-          DEFAULT: '#2563EB',
-          dark: '#1E40AF',
+          // Alineado al azul del logo (public/logo.svg): #2F6FA8 de marca,
+          // #4FA8E8 como acento claro.
+          DEFAULT: '#2F6FA8',
+          dark: '#1F4E78',
           // Variante clara de marca, para texto/acentos legibles sobre
           // fondos oscuros (donde brand.dark se ve casi negro).
-          light: '#93C5FD',
-          tint: '#EFF6FF',
+          light: '#4FA8E8',
+          tint: '#EAF3FA',
         },
         gold: '#B58A2A',
         success: '#2F7D57',

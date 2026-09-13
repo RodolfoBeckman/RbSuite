@@ -36,9 +36,9 @@ export default function LoginPage() {
         onSubmit={handleSubmit}
         className="w-full max-w-sm rounded-xl border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-700 dark:bg-gray-800"
       >
-        <h1 className="mb-1 font-serif text-2xl font-semibold text-brand-dark dark:text-brand-light">
-          RB Suite
-        </h1>
+        <div className="mb-4 inline-block rounded-lg bg-white p-2">
+          <img src="/logo.svg" alt="RB Suite" className="h-8 w-auto" />
+        </div>
         <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">
           Inicia sesión para continuar
         </p>
