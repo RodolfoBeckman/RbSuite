@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
-import { useAuth } from '../auth/AuthContext'
 import BranchPicker from '../components/BranchPicker'
+import { useActiveBranch } from '../hooks/useActiveBranch'
 import { usePosCatalog } from '../hooks/usePosCatalog'
 import { useCreateSale } from '../hooks/useCreateSale'
 import { useLabels } from '../hooks/useLabels'
@@ -15,7 +15,7 @@ const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
 ]
 
 export default function PosPage() {
-  const { activeBranchId } = useAuth()
+  const activeBranchId = useActiveBranch()
   const labels = useLabels()
   const {
     data: catalog,

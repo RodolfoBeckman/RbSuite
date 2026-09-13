@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
-import { useAuth } from '../auth/AuthContext'
 import BranchPicker from '../components/BranchPicker'
+import { useActiveBranch } from '../hooks/useActiveBranch'
 import {
   useCashMovements,
   useCashRegisters,
@@ -22,7 +22,7 @@ const MOVEMENT_LABEL: Record<string, string> = {
 }
 
 export default function CajaPage() {
-  const { activeBranchId } = useAuth()
+  const activeBranchId = useActiveBranch()
   const { data: registers, isLoading: loadingRegisters } = useCashRegisters(activeBranchId)
   const createRegister = useCreateCashRegister()
 

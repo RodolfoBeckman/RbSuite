@@ -6,6 +6,12 @@ import {
   useUploadLogo,
 } from '../hooks/useBranding'
 import { useLabels, useUpdateLabels } from '../hooks/useLabels'
+import {
+  useCreateBranch,
+  useManageBranches,
+  useUpdateBranch,
+  type BranchDetail,
+} from '../hooks/useBranches'
 import type { Labels } from '../labels/defaultLabels'
 
 const LABEL_FIELDS: { key: keyof Labels; hint: string }[] = [
@@ -127,7 +133,195 @@ export default function SettingsPage() {
         )}
       </div>
 
+      <BranchesSection />
       <LabelsSection />
+    </div>
+  )
+}
+
+const TIMEZONE_OPTIONS = [
+  'America/Mexico_City',
+  'America/Tijuana',
+  'America/Cancun',
+  'America/Hermosillo',
+]
+
+function BranchesSection() {
+  const { data: branches, isLoading } = useManageBranches()
+  const createBranch = useCreateBranch()
+
+  const [newBranch, setNewBranch] = useState({
+    name: '',
+    address: '',
+    timezone: TIMEZONE_OPTIONS[0],
+  })
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(
+    null,
+  )
+
+  function handleCreate() {
+    if (!newBranch.name.trim()) return
+    setFeedback(null)
+    createBranch.mutate(newBranch, {
+      onSuccess: () => {
+        setFeedback({ type: 'success', text: 'Sucursal creada' })
+        setNewBranch({ name: '', address: '', timezone: TIMEZONE_OPTIONS[0] })
+      },
+      onError: (error) =>
+        setFeedback({
+          type: 'error',
+          text: error instanceof Error ? error.message : 'No se pudo crear la sucursal',
+        }),
+    })
+  }
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+      <h2 className="mb-1 font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
+        Sucursales
+      </h2>
+      <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
+        Da de alta y edita las sucursales de tu negocio. Desactivar una sucursal la oculta del
+        punto de venta sin borrar su historial.
+      </p>
+
+      <div className="mb-5 space-y-3">
+        {isLoading && <p className="text-sm text-gray-500 dark:text-gray-400">Cargando…</p>}
+        {branches?.map((branch) => (
+          <BranchRow key={branch.id} branch={branch} />
+        ))}
+        {branches?.length === 0 && (
+          <p className="text-sm text-gray-400">Aún no tienes sucursales registradas.</p>
+        )}
+      </div>
+
+      <div className="rounded-lg border border-dashed border-gray-300 p-4 dark:border-gray-600">
+        <p className="mb-3 text-sm font-medium text-gray-600 dark:text-gray-300">
+          Nueva sucursal
+        </p>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <input
+            type="text"
+            placeholder="Nombre (ej. Norte)"
+            value={newBranch.name}
+            onChange={(event) => setNewBranch((prev) => ({ ...prev, name: event.target.value }))}
+            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+          />
+          <input
+            type="text"
+            placeholder="Dirección (opcional)"
+            value={newBranch.address}
+            onChange={(event) =>
+              setNewBranch((prev) => ({ ...prev, address: event.target.value }))
+            }
+            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+          />
+          <select
+            value={newBranch.timezone}
+            onChange={(event) =>
+              setNewBranch((prev) => ({ ...prev, timezone: event.target.value }))
+            }
+            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+          >
+            {TIMEZONE_OPTIONS.map((tz) => (
+              <option key={tz} value={tz}>
+                {tz}
+              </option>
+            ))}
+          </select>
+        </div>
+        <button
+          onClick={handleCreate}
+          disabled={createBranch.isPending || !newBranch.name.trim()}
+          className="mt-3 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-50"
+        >
+          {createBranch.isPending ? 'Creando…' : 'Agregar sucursal'}
+        </button>
+      </div>
+
+      {feedback && (
+        <p className={`mt-3 text-sm ${feedback.type === 'success' ? 'text-success' : 'text-danger'}`}>
+          {feedback.text}
+        </p>
+      )}
+    </div>
+  )
+}
+
+function BranchRow({ branch }: { branch: BranchDetail }) {
+  const updateBranch = useUpdateBranch()
+  const [form, setForm] = useState({
+    name: branch.name,
+    address: branch.address ?? '',
+    timezone: branch.timezone,
+    active: branch.active,
+  })
+  const [feedback, setFeedback] = useState<'success' | 'error' | null>(null)
+
+  const dirty =
+    form.name !== branch.name ||
+    form.address !== (branch.address ?? '') ||
+    form.timezone !== branch.timezone ||
+    form.active !== branch.active
+
+  function handleSave() {
+    setFeedback(null)
+    updateBranch.mutate(
+      { id: branch.id, ...form },
+      {
+        onSuccess: () => setFeedback('success'),
+        onError: () => setFeedback('error'),
+      },
+    )
+  }
+
+  return (
+    <div className="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+      <div className="grid gap-3 sm:grid-cols-3">
+        <input
+          type="text"
+          value={form.name}
+          onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
+          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+        />
+        <input
+          type="text"
+          placeholder="Dirección"
+          value={form.address}
+          onChange={(event) => setForm((prev) => ({ ...prev, address: event.target.value }))}
+          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+        />
+        <select
+          value={form.timezone}
+          onChange={(event) => setForm((prev) => ({ ...prev, timezone: event.target.value }))}
+          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+        >
+          {TIMEZONE_OPTIONS.map((tz) => (
+            <option key={tz} value={tz}>
+              {tz}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="mt-2 flex items-center gap-3">
+        <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+          <input
+            type="checkbox"
+            checked={form.active}
+            onChange={(event) => setForm((prev) => ({ ...prev, active: event.target.checked }))}
+          />
+          Activa
+        </label>
+        <button
+          onClick={handleSave}
+          disabled={!dirty || updateBranch.isPending}
+          className="ml-auto rounded-lg bg-brand px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-50"
+        >
+          {updateBranch.isPending ? 'Guardando…' : 'Guardar'}
+        </button>
+        {feedback === 'success' && <span className="text-sm text-success">Guardado</span>}
+        {feedback === 'error' && <span className="text-sm text-danger">Error al guardar</span>}
+      </div>
     </div>
   )
 }
