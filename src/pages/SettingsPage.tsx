@@ -1,5 +1,20 @@
 import { useEffect, useState, type ChangeEvent } from 'react'
-import { DEFAULT_PRIMARY_COLOR, useBranding, useUpdateBrandColor, useUploadLogo } from '../hooks/useBranding'
+import {
+  DEFAULT_PRIMARY_COLOR,
+  useBranding,
+  useUpdateBrandColor,
+  useUploadLogo,
+} from '../hooks/useBranding'
+import { useLabels, useUpdateLabels } from '../hooks/useLabels'
+import type { Labels } from '../labels/defaultLabels'
+
+const LABEL_FIELDS: { key: keyof Labels; hint: string }[] = [
+  { key: 'navDashboard', hint: 'Menú — Dashboard' },
+  { key: 'navPos', hint: 'Menú — Punto de venta' },
+  { key: 'navCaja', hint: 'Menú — Caja' },
+  { key: 'navVentas', hint: 'Menú — Ventas' },
+  { key: 'posTitle', hint: 'Título dentro del punto de venta' },
+]
 
 export default function SettingsPage() {
   const { data: branding, isLoading } = useBranding()
@@ -111,6 +126,77 @@ export default function SettingsPage() {
           </p>
         )}
       </div>
+
+      <LabelsSection />
+    </div>
+  )
+}
+
+function LabelsSection() {
+  const labels = useLabels()
+  const updateLabels = useUpdateLabels()
+
+  const [form, setForm] = useState<Labels>(labels)
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(
+    null,
+  )
+
+  useEffect(() => {
+    setForm(labels)
+    // Solo re-sincronizar cuando cambian los valores guardados, no en cada
+    // render (labels es un objeto nuevo cada vez que useLabels corre).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(labels)])
+
+  function handleSave() {
+    setFeedback(null)
+    updateLabels.mutate(form, {
+      onSuccess: () => setFeedback({ type: 'success', text: 'Textos actualizados' }),
+      onError: (error) =>
+        setFeedback({
+          type: 'error',
+          text: error instanceof Error ? error.message : 'No se pudo guardar',
+        }),
+    })
+  }
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+      <h2 className="mb-1 font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
+        Textos de la interfaz
+      </h2>
+      <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
+        Personaliza los nombres que ve tu equipo — por ejemplo, si no manejas servicios, puedes
+        quitar esa palabra del menú de ventas.
+      </p>
+
+      <div className="mb-4 space-y-3">
+        {LABEL_FIELDS.map(({ key, hint }) => (
+          <div key={key}>
+            <label className="mb-1 block text-sm text-gray-600 dark:text-gray-300">{hint}</label>
+            <input
+              type="text"
+              value={form[key]}
+              onChange={(event) => setForm((prev) => ({ ...prev, [key]: event.target.value }))}
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+            />
+          </div>
+        ))}
+      </div>
+
+      <button
+        onClick={handleSave}
+        disabled={updateLabels.isPending}
+        className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-50"
+      >
+        {updateLabels.isPending ? 'Guardando…' : 'Guardar textos'}
+      </button>
+
+      {feedback && (
+        <p className={`mt-3 text-sm ${feedback.type === 'success' ? 'text-success' : 'text-danger'}`}>
+          {feedback.text}
+        </p>
+      )}
     </div>
   )
 }
