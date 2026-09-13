@@ -136,6 +136,7 @@ export interface CatalogProductMatch {
   brandName: string | null
   unitName: string
   familyName: string | null
+  owned: boolean
 }
 
 interface CatalogSearchRow {
@@ -171,16 +172,15 @@ export function useSearchCatalogProducts(term: string) {
       if (ownedError) throw ownedError
       const ownedIds = new Set((owned ?? []).map((row) => row.product_id as string))
 
-      return (data ?? [])
-        .filter((row) => !ownedIds.has(row.id))
-        .map((row) => ({
-          id: row.id,
-          name: row.name,
-          barcode: row.barcode,
-          brandName: one(row.brand)?.name ?? null,
-          unitName: one(row.unit)?.name ?? '—',
-          familyName: one(row.family)?.name ?? null,
-        }))
+      return (data ?? []).map((row) => ({
+        id: row.id,
+        name: row.name,
+        barcode: row.barcode,
+        brandName: one(row.brand)?.name ?? null,
+        unitName: one(row.unit)?.name ?? '—',
+        familyName: one(row.family)?.name ?? null,
+        owned: ownedIds.has(row.id),
+      }))
     },
     enabled: !!membership?.businessId && term.trim().length >= 2,
   })

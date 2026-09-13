@@ -237,6 +237,15 @@ function ProductFormModal({ branchId, onClose }: { branchId: string; onClose: ()
   )
 
   const usingExisting = !!selectedMatch
+  const isDirty =
+    usingExisting ||
+    searchTerm.trim() !== '' ||
+    form.barcode.trim() !== '' ||
+    form.name.trim() !== '' ||
+    form.salePrice !== '' ||
+    form.purchasePrice !== '' ||
+    form.minimumStock !== '0' ||
+    form.initialStock !== '0'
 
   function handlePickMatch(match: CatalogProductMatch) {
     setSelectedMatch(match)
@@ -274,7 +283,7 @@ function ProductFormModal({ branchId, onClose }: { branchId: string; onClose: ()
   }
 
   return (
-    <Modal title="Nuevo producto" onClose={onClose}>
+    <Modal title="Nuevo producto" onClose={onClose} isDirty={isDirty}>
       <div className="space-y-4">
         {!usingExisting && (
           <div>
@@ -290,22 +299,34 @@ function ProductFormModal({ branchId, onClose }: { branchId: string; onClose: ()
             {searchTerm.trim().length >= 2 && (
               <div className="mt-2 space-y-1">
                 {searching && <p className="text-sm text-gray-400">Buscando…</p>}
-                {matches?.map((match) => (
-                  <button
-                    key={match.id}
-                    type="button"
-                    onClick={() => handlePickMatch(match)}
-                    className="block w-full rounded-lg border border-gray-200 p-2 text-left text-sm hover:border-brand dark:border-gray-600"
-                  >
-                    <span className="font-medium">{match.name}</span>
-                    {match.brandName && <span className="text-gray-400"> · {match.brandName}</span>}
-                    <span className="ml-2 text-xs text-gray-400">{match.unitName}</span>
-                  </button>
-                ))}
+                {matches?.map((match) =>
+                  match.owned ? (
+                    <div
+                      key={match.id}
+                      className="rounded-lg border border-gray-200 p-2 text-sm text-gray-400 dark:border-gray-700"
+                    >
+                      <span className="font-medium text-gray-500 dark:text-gray-300">
+                        {match.name}
+                      </span>{' '}
+                      — ya está en tu inventario
+                    </div>
+                  ) : (
+                    <button
+                      key={match.id}
+                      type="button"
+                      onClick={() => handlePickMatch(match)}
+                      className="block w-full rounded-lg border border-gray-200 p-2 text-left text-sm hover:border-brand dark:border-gray-600"
+                    >
+                      <span className="font-medium">{match.name}</span>
+                      {match.brandName && <span className="text-gray-400"> · {match.brandName}</span>}
+                      <span className="ml-2 text-xs text-gray-400">{match.unitName}</span>
+                    </button>
+                  ),
+                )}
                 {matches?.length === 0 && !searching && (
                   <p className="text-sm text-gray-400">
-                    Nadie más en la plataforma tiene ese producto — llena los datos abajo para
-                    crearlo.
+                    No hay ningún producto así en la plataforma todavía — llena los datos abajo
+                    para crearlo.
                   </p>
                 )}
               </div>
@@ -598,7 +619,11 @@ function AdjustStockModal({
   }
 
   return (
-    <Modal title={`Ajustar stock — ${product.name}`} onClose={onClose}>
+    <Modal
+      title={`Ajustar stock — ${product.name}`}
+      onClose={onClose}
+      isDirty={quantity.trim() !== '' || reason.trim() !== ''}
+    >
       <div className="space-y-3">
         <p className="text-sm text-gray-500 dark:text-gray-400">
           Stock actual: {product.stock} {product.unitName}

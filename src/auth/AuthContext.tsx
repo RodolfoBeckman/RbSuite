@@ -59,7 +59,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setActiveBranchId(resolved.branchId)
       }
     })
-  }, [session])
+    // Supabase reemplaza el objeto `session` en cada evento de
+    // onAuthStateChange, incluido el refresco silencioso de token al
+    // recuperar el foco de la pestaña — sin esto, ese refresco resetea
+    // activeBranchId (y con él, cualquier pantalla que dependa de tener
+    // una sucursal elegida) aunque el usuario siga siendo el mismo.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user?.id])
 
   async function signOut() {
     await supabase.auth.signOut()
