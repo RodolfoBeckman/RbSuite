@@ -24,7 +24,7 @@ export default function DashboardPage() {
   const { data: summary, isLoading: loadingSummary } = useDashboardSummary()
 
   if (!membership) {
-    return <p className="text-sm text-gray-500">Cargando…</p>
+    return <p className="text-sm text-gray-500 dark:text-gray-400">Cargando…</p>
   }
 
   const isManager = membership.role === 'administrador' || membership.role === 'gerente'
@@ -48,10 +48,10 @@ function SummaryCard({
   tone?: 'brand' | 'danger'
 }) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6">
-      <p className="text-sm text-gray-500">{label}</p>
+    <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+      <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
       <p
-        className={`font-serif text-3xl font-semibold ${tone === 'danger' ? 'text-danger' : 'text-brand-dark'}`}
+        className={`font-serif text-3xl font-semibold ${tone === 'danger' ? 'text-danger' : 'text-brand-dark dark:text-brand-light'}`}
       >
         {loading ? '—' : value}
       </p>
@@ -127,8 +127,8 @@ function ManagerDashboard({
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="rounded-xl border border-gray-200 bg-white p-6">
-          <h3 className="mb-3 font-serif text-base font-semibold text-brand-dark">
+        <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+          <h3 className="mb-3 font-serif text-base font-semibold text-brand-dark dark:text-brand-light">
             Ventas — últimos 7 días
           </h3>
           <div className="flex items-end gap-2">
@@ -152,23 +152,23 @@ function ManagerDashboard({
           </div>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-6">
-          <h3 className="mb-3 font-serif text-base font-semibold text-brand-dark">
+        <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+          <h3 className="mb-3 font-serif text-base font-semibold text-brand-dark dark:text-brand-light">
             Métodos de pago (7 días)
           </h3>
           <div className="space-y-2">
             {(paymentMethods ?? []).map((method) => (
               <div key={method.method} className="flex items-center gap-2 text-sm">
-                <span className="w-28 text-gray-500">
+                <span className="w-28 text-gray-500 dark:text-gray-400">
                   {PAYMENT_LABEL[method.method] ?? method.method}
                 </span>
-                <div className="h-2 flex-1 rounded-full bg-gray-100">
+                <div className="h-2 flex-1 rounded-full bg-gray-100 dark:bg-gray-700">
                   <div
                     className="h-2 rounded-full bg-gold"
                     style={{ width: `${(method.total / maxPayment) * 100}%` }}
                   />
                 </div>
-                <span className="w-24 text-right text-gray-700">
+                <span className="w-24 text-right text-gray-700 dark:text-gray-300">
                   {currency.format(method.total)}
                 </span>
               </div>
@@ -179,21 +179,23 @@ function ManagerDashboard({
           </div>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-6">
-          <h3 className="mb-3 font-serif text-base font-semibold text-brand-dark">
+        <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+          <h3 className="mb-3 font-serif text-base font-semibold text-brand-dark dark:text-brand-light">
             Venta por sucursal (hoy)
           </h3>
           <div className="space-y-2">
             {(byBranch ?? []).map((branch) => (
               <div key={branch.branchId} className="flex items-center gap-2 text-sm">
-                <span className="w-24 truncate text-gray-500">{branch.branchName}</span>
-                <div className="h-2 flex-1 rounded-full bg-gray-100">
+                <span className="w-24 truncate text-gray-500 dark:text-gray-400">
+                  {branch.branchName}
+                </span>
+                <div className="h-2 flex-1 rounded-full bg-gray-100 dark:bg-gray-700">
                   <div
                     className="h-2 rounded-full bg-brand"
                     style={{ width: `${(branch.total / maxBranch) * 100}%` }}
                   />
                 </div>
-                <span className="w-24 text-right text-gray-700">
+                <span className="w-24 text-right text-gray-700 dark:text-gray-300">
                   {currency.format(branch.total)}
                 </span>
               </div>
@@ -204,8 +206,8 @@ function ManagerDashboard({
           </div>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-6">
-          <h3 className="mb-3 font-serif text-base font-semibold text-brand-dark">
+        <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+          <h3 className="mb-3 font-serif text-base font-semibold text-brand-dark dark:text-brand-light">
             Más vendidos (30 días)
           </h3>
           <div className="space-y-1 text-sm">
@@ -214,7 +216,7 @@ function ManagerDashboard({
                 key={`${item.itemType}-${item.name}`}
                 className="flex items-center justify-between"
               >
-                <span className="text-gray-700">{item.name}</span>
+                <span className="text-gray-700 dark:text-gray-300">{item.name}</span>
                 <span className="text-gray-400">
                   {item.quantity} · {currency.format(item.total)}
                 </span>
@@ -228,7 +230,7 @@ function ManagerDashboard({
       </div>
 
       {lowStock && lowStock.length > 0 && (
-        <div className="rounded-xl border border-danger/30 bg-white p-6">
+        <div className="rounded-xl border border-danger/30 bg-white p-6 dark:bg-gray-800">
           <h3 className="mb-3 font-serif text-base font-semibold text-danger">Stock bajo</h3>
           <div className="space-y-1 text-sm">
             {lowStock.map((item) => (
@@ -236,7 +238,7 @@ function ManagerDashboard({
                 key={`${item.businessProductId}-${item.branchId}`}
                 className="flex items-center justify-between"
               >
-                <span className="text-gray-700">
+                <span className="text-gray-700 dark:text-gray-300">
                   {item.name} — {item.branchName}
                 </span>
                 <span className="text-danger">

@@ -31,29 +31,33 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 dark:bg-gray-900">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-sm rounded-xl border border-gray-200 bg-white p-8 shadow-sm"
+        className="w-full max-w-sm rounded-xl border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-700 dark:bg-gray-800"
       >
-        <h1 className="mb-1 font-serif text-2xl font-semibold text-brand-dark">RB Suite</h1>
-        <p className="mb-6 text-sm text-gray-500">Inicia sesión para continuar</p>
+        <h1 className="mb-1 font-serif text-2xl font-semibold text-brand-dark dark:text-brand-light">
+          RB Suite
+        </h1>
+        <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">
+          Inicia sesión para continuar
+        </p>
 
-        <label className="mb-1 block text-sm text-gray-600">Correo</label>
+        <label className="mb-1 block text-sm text-gray-600 dark:text-gray-300">Correo</label>
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="mb-4 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-brand"
+          className="mb-4 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-brand dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
           placeholder="tu@negocio.com"
         />
 
-        <label className="mb-1 block text-sm text-gray-600">Contraseña</label>
+        <label className="mb-1 block text-sm text-gray-600 dark:text-gray-300">Contraseña</label>
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="mb-4 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-brand"
+          className="mb-4 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-brand dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
           placeholder="••••••••"
         />
 

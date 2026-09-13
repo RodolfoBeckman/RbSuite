@@ -60,13 +60,13 @@ export default function CajaPage() {
   }
 
   if (loadingRegisters) {
-    return <p className="text-sm text-gray-500">Cargando…</p>
+    return <p className="text-sm text-gray-500 dark:text-gray-400">Cargando…</p>
   }
 
   if (!register) {
     return (
-      <div className="rounded-xl border border-gray-200 bg-white p-6">
-        <h2 className="mb-3 font-serif text-lg font-semibold text-brand-dark">
+      <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+        <h2 className="mb-3 font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
           Esta sucursal aún no tiene una caja registrada
         </h2>
         <button
@@ -83,18 +83,18 @@ export default function CajaPage() {
   }
 
   if (loadingSession) {
-    return <p className="text-sm text-gray-500">Cargando caja…</p>
+    return <p className="text-sm text-gray-500 dark:text-gray-400">Cargando caja…</p>
   }
 
   if (!session) {
     return (
-      <div className="max-w-sm rounded-xl border border-gray-200 bg-white p-6">
-        <h2 className="mb-3 font-serif text-lg font-semibold text-brand-dark">
+      <div className="max-w-sm rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+        <h2 className="mb-3 font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
           Abrir caja — {register.name}
         </h2>
 
         {closeResult && (
-          <div className="mb-4 rounded-lg bg-brand-tint p-3 text-sm text-brand-dark">
+          <div className="mb-4 rounded-lg bg-brand-tint p-3 text-sm text-brand-dark dark:bg-brand/20 dark:text-brand-light">
             <p>Última sesión — esperado: {currency.format(closeResult.expected)}</p>
             <p className={closeResult.difference === 0 ? '' : closeResult.difference > 0 ? 'text-success' : 'text-danger'}>
               Diferencia: {currency.format(closeResult.difference)}
@@ -102,14 +102,16 @@ export default function CajaPage() {
           </div>
         )}
 
-        <label className="mb-1 block text-sm text-gray-600">Fondo inicial</label>
+        <label className="mb-1 block text-sm text-gray-600 dark:text-gray-300">
+          Fondo inicial
+        </label>
         <input
           type="number"
           min="0"
           step="0.01"
           value={openingAmount}
           onChange={(event) => setOpeningAmount(event.target.value)}
-          className="mb-3 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand focus:outline-none"
+          className="mb-3 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
         />
 
         {feedback && (
@@ -151,27 +153,33 @@ export default function CajaPage() {
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-      <div className="rounded-xl border border-gray-200 bg-white p-6">
-        <h2 className="mb-1 font-serif text-lg font-semibold text-brand-dark">{register.name}</h2>
-        <p className="mb-4 text-sm text-gray-500">
+      <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+        <h2 className="mb-1 font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
+          {register.name}
+        </h2>
+        <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
           Abierta {new Date(session.openedAt).toLocaleString('es-MX')}
         </p>
 
-        <div className="mb-4 flex items-center justify-between rounded-lg bg-brand-tint p-3">
-          <span className="text-sm font-medium text-brand-dark">Efectivo esperado ahora</span>
-          <span className="font-serif text-lg font-semibold text-brand-dark">
+        <div className="mb-4 flex items-center justify-between rounded-lg bg-brand-tint p-3 dark:bg-brand/20">
+          <span className="text-sm font-medium text-brand-dark dark:text-brand-light">
+            Efectivo esperado ahora
+          </span>
+          <span className="font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
             {currency.format(runningTotal)}
           </span>
         </div>
 
-        <h3 className="mb-2 text-sm font-semibold text-gray-700">Movimiento manual</h3>
+        <h3 className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+          Movimiento manual
+        </h3>
         <div className="mb-2 grid grid-cols-2 gap-2">
           <button
             onClick={() => setMovementType('cash_in')}
             className={`rounded-lg border px-3 py-1.5 text-xs font-semibold ${
               movementType === 'cash_in'
                 ? 'border-success text-success'
-                : 'border-gray-200 text-gray-500'
+                : 'border-gray-200 text-gray-500 dark:border-gray-600 dark:text-gray-400'
             }`}
           >
             Entrada
@@ -181,7 +189,7 @@ export default function CajaPage() {
             className={`rounded-lg border px-3 py-1.5 text-xs font-semibold ${
               movementType === 'cash_out'
                 ? 'border-danger text-danger'
-                : 'border-gray-200 text-gray-500'
+                : 'border-gray-200 text-gray-500 dark:border-gray-600 dark:text-gray-400'
             }`}
           >
             Retiro
@@ -194,14 +202,14 @@ export default function CajaPage() {
           placeholder="Monto"
           value={movementAmount}
           onChange={(event) => setMovementAmount(event.target.value)}
-          className="mb-2 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand focus:outline-none"
+          className="mb-2 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
         />
         <input
           type="text"
           placeholder="Motivo (opcional)"
           value={movementReason}
           onChange={(event) => setMovementReason(event.target.value)}
-          className="mb-2 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand focus:outline-none"
+          className="mb-2 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
         />
         <button
           onClick={() => {
@@ -232,7 +240,7 @@ export default function CajaPage() {
             )
           }}
           disabled={registerMovement.isPending}
-          className="w-full rounded-lg border border-gray-300 py-2 text-sm font-semibold text-gray-700 hover:border-brand disabled:opacity-50"
+          className="w-full rounded-lg border border-gray-300 py-2 text-sm font-semibold text-gray-700 hover:border-brand disabled:opacity-50 dark:border-gray-600 dark:text-gray-200"
         >
           {registerMovement.isPending ? 'Guardando…' : 'Registrar movimiento'}
         </button>
@@ -246,25 +254,29 @@ export default function CajaPage() {
         )}
       </div>
 
-      <div className="rounded-xl border border-gray-200 bg-white p-6">
-        <h3 className="mb-3 font-serif text-lg font-semibold text-brand-dark">Cerrar caja</h3>
-        <label className="mb-1 block text-sm text-gray-600">Efectivo contado</label>
+      <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+        <h3 className="mb-3 font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
+          Cerrar caja
+        </h3>
+        <label className="mb-1 block text-sm text-gray-600 dark:text-gray-300">
+          Efectivo contado
+        </label>
         <input
           type="number"
           min="0"
           step="0.01"
           value={countedAmount}
           onChange={(event) => setCountedAmount(event.target.value)}
-          className="mb-3 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand focus:outline-none"
+          className="mb-3 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
         />
 
         {countedAmount !== '' && !Number.isNaN(Number(countedAmount)) && (
-          <p className="mb-3 text-sm text-gray-500">
+          <p className="mb-3 text-sm text-gray-500 dark:text-gray-400">
             Diferencia estimada:{' '}
             <span
               className={
                 Number(countedAmount) - runningTotal === 0
-                  ? 'text-gray-700'
+                  ? 'text-gray-700 dark:text-gray-300'
                   : Number(countedAmount) - runningTotal > 0
                     ? 'text-success'
                     : 'text-danger'
@@ -307,14 +319,16 @@ export default function CajaPage() {
           {closeSession.isPending ? 'Cerrando…' : 'Cerrar caja'}
         </button>
 
-        <h4 className="mb-2 mt-6 text-sm font-semibold text-gray-700">Movimientos de la sesión</h4>
+        <h4 className="mb-2 mt-6 text-sm font-semibold text-gray-700 dark:text-gray-300">
+          Movimientos de la sesión
+        </h4>
         <div className="max-h-64 space-y-1 overflow-y-auto text-sm">
           {(movements ?? []).map((movement) => (
             <div
               key={movement.id}
-              className="flex items-center justify-between border-b border-gray-100 py-1"
+              className="flex items-center justify-between border-b border-gray-100 py-1 dark:border-gray-700"
             >
-              <span className="text-gray-600">
+              <span className="text-gray-600 dark:text-gray-300">
                 {MOVEMENT_LABEL[movement.type] ?? movement.type}
               </span>
               <span className={movement.amount >= 0 ? 'text-success' : 'text-danger'}>
