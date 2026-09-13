@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useAuth } from '../auth/AuthContext'
-import { useBranches } from '../hooks/useBranches'
+import BranchPicker from '../components/BranchPicker'
 import { usePosCatalog } from '../hooks/usePosCatalog'
 import { useCreateSale } from '../hooks/useCreateSale'
 import type { CartLine, CatalogItem, PaymentMethod } from '../types'
@@ -14,8 +14,7 @@ const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
 ]
 
 export default function PosPage() {
-  const { activeBranchId, setActiveBranchId } = useAuth()
-  const { data: branches, isLoading: loadingBranches } = useBranches()
+  const { activeBranchId } = useAuth()
   const {
     data: catalog,
     isLoading: loadingCatalog,
@@ -86,32 +85,8 @@ export default function PosPage() {
     )
   }
 
-  // Vendedor ya trae branch_id fijo desde su membership. Administrador y
-  // Gerente pueden ver todas las sucursales (branch_id null), así que aquí
-  // eligen desde cuál sucursal están vendiendo antes de usar el POS.
   if (!activeBranchId) {
-    return (
-      <div className="rounded-xl border border-gray-200 bg-white p-6">
-        <h2 className="mb-3 font-serif text-lg font-semibold text-brand-dark">
-          Elige una sucursal para vender
-        </h2>
-        {loadingBranches ? (
-          <p className="text-sm text-gray-500">Cargando sucursales…</p>
-        ) : (
-          <div className="flex flex-wrap gap-2">
-            {branches?.map((branch) => (
-              <button
-                key={branch.id}
-                onClick={() => setActiveBranchId(branch.id)}
-                className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:border-brand hover:text-brand-dark"
-              >
-                {branch.name}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-    )
+    return <BranchPicker title="Elige una sucursal para vender" />
   }
 
   return (

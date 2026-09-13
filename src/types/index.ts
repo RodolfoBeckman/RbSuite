@@ -40,3 +40,28 @@ export interface CartLine {
 }
 
 export type PaymentMethod = 'cash' | 'card' | 'transfer'
+
+export type CashSessionStatus = 'open' | 'closed'
+export type CashMovementType = 'sale' | 'cash_in' | 'cash_out' | 'adjustment'
+
+export interface CashRegister {
+  id: string
+  branchId: string
+  name: string
+}
+
+export interface CashSession {
+  id: string
+  cashRegisterId: string
+  openingAmount: number
+  openedAt: string
+  status: CashSessionStatus
+}
+
+export interface CashMovement {
+  id: string
+  type: CashMovementType
+  amount: number
+  reason: string | null
+  createdAt: string
+}
