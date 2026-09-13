@@ -131,14 +131,16 @@ function ManagerDashboard({
           <h3 className="mb-3 font-serif text-base font-semibold text-brand-dark">
             Ventas — últimos 7 días
           </h3>
-          <div className="flex h-32 items-end gap-2">
+          <div className="flex items-end gap-2">
             {(trend ?? []).map((point) => (
               <div key={point.day} className="flex flex-1 flex-col items-center gap-1">
-                <div
-                  className="w-full rounded-t bg-brand transition-all"
-                  style={{ height: `${Math.max(4, (point.total / maxTrend) * 100)}%` }}
-                  title={currency.format(point.total)}
-                />
+                <div className="flex h-32 w-full items-end">
+                  <div
+                    className="w-full rounded-t bg-brand transition-all"
+                    style={{ height: `${Math.max(4, (point.total / maxTrend) * 100)}%` }}
+                    title={currency.format(point.total)}
+                  />
+                </div>
                 <span className="text-xs text-gray-400">
                   {weekday.format(new Date(`${point.day}T00:00:00`))}
                 </span>
