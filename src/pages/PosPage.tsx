@@ -2,9 +2,16 @@ import { useMemo, useState } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import { useBranches } from '../hooks/useBranches'
 import { usePosCatalog } from '../hooks/usePosCatalog'
-import type { CartLine, CatalogItem } from '../types'
+import { useCreateSale } from '../hooks/useCreateSale'
+import type { CartLine, CatalogItem, PaymentMethod } from '../types'
 
 const currency = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' })
+
+const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
+  { value: 'cash', label: 'Efectivo' },
+  { value: 'card', label: 'Tarjeta' },
+  { value: 'transfer', label: 'Transferencia' },
+]
 
 export default function PosPage() {
   const { activeBranchId, setActiveBranchId } = useAuth()
@@ -17,6 +24,12 @@ export default function PosPage() {
 
   const [search, setSearch] = useState('')
   const [cart, setCart] = useState<Map<string, CartLine>>(new Map())
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash')
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(
+    null,
+  )
+
+  const createSale = useCreateSale()
 
   const filteredCatalog = useMemo(() => {
     if (!catalog) return []
@@ -48,6 +61,29 @@ export default function PosPage() {
       if (existing) next.set(itemId, { ...existing, quantity })
       return next
     })
+  }
+
+  function handleCheckout() {
+    if (!activeBranchId || cartLines.length === 0) return
+    setFeedback(null)
+    createSale.mutate(
+      { branchId: activeBranchId, cartLines, paymentMethod, total },
+      {
+        onSuccess: ({ folio }) => {
+          setFeedback({
+            type: 'success',
+            text: folio ? `Venta registrada — folio ${folio}` : 'Venta registrada',
+          })
+          setCart(new Map())
+        },
+        onError: (error) => {
+          setFeedback({
+            type: 'error',
+            text: error instanceof Error ? error.message : 'No se pudo registrar la venta',
+          })
+        },
+      },
+    )
   }
 
   // Vendedor ya trae branch_id fijo desde su membership. Administrador y
@@ -157,12 +193,37 @@ export default function PosPage() {
             <span>Total</span>
             <span>{currency.format(total)}</span>
           </div>
+
+          <div className="mb-3 grid grid-cols-3 gap-2">
+            {PAYMENT_METHODS.map((method) => (
+              <button
+                key={method.value}
+                onClick={() => setPaymentMethod(method.value)}
+                className={`rounded-lg border px-2 py-1.5 text-xs font-semibold ${
+                  paymentMethod === method.value
+                    ? 'border-brand bg-brand-tint text-brand-dark'
+                    : 'border-gray-200 text-gray-500 hover:border-brand'
+                }`}
+              >
+                {method.label}
+              </button>
+            ))}
+          </div>
+
+          {feedback && (
+            <p
+              className={`mb-3 text-sm ${feedback.type === 'success' ? 'text-success' : 'text-danger'}`}
+            >
+              {feedback.text}
+            </p>
+          )}
+
           <button
-            disabled
-            title="El cobro se habilita en la Etapa 3, cuando create_sale quede implementada"
-            className="w-full cursor-not-allowed rounded-lg bg-brand py-2.5 text-sm font-semibold text-white opacity-50"
+            onClick={handleCheckout}
+            disabled={cartLines.length === 0 || createSale.isPending}
+            className="w-full rounded-lg bg-brand py-2.5 text-sm font-semibold text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Cobrar (próximamente)
+            {createSale.isPending ? 'Cobrando…' : 'Cobrar'}
           </button>
         </div>
       </div>

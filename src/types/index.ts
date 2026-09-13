@@ -38,3 +38,5 @@ export interface CartLine {
   item: CatalogItem
   quantity: number
 }
+
+export type PaymentMethod = 'cash' | 'card' | 'transfer'
