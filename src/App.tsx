@@ -5,6 +5,7 @@ import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import PosPage from './pages/PosPage'
 import CajaPage from './pages/CajaPage'
+import SalesHistoryPage from './pages/SalesHistoryPage'
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
           <Route path="/" element={<DashboardPage />} />
           <Route path="/pos" element={<PosPage />} />
           <Route path="/caja" element={<CajaPage />} />
+          <Route path="/ventas" element={<SalesHistoryPage />} />
         </Route>
       </Route>
     </Routes>

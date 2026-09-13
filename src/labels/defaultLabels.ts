@@ -6,6 +6,7 @@ export interface Labels {
   navDashboard: string
   navPos: string
   navCaja: string
+  navVentas: string
   posTitle: string
 }
 
@@ -13,5 +14,6 @@ export const DEFAULT_LABELS: Labels = {
   navDashboard: 'Dashboard',
   navPos: 'Punto de venta',
   navCaja: 'Caja',
+  navVentas: 'Ventas',
   posTitle: 'Punto de venta',
 }

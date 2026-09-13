@@ -41,6 +41,17 @@ export interface CartLine {
 
 export type PaymentMethod = 'cash' | 'card' | 'transfer'
 
+export type SaleStatus = 'completed' | 'cancelled'
+
+export interface Sale {
+  id: string
+  folio: number
+  createdAt: string
+  total: number
+  status: SaleStatus
+  branchName: string
+}
+
 export type CashSessionStatus = 'open' | 'closed'
 export type CashMovementType = 'sale' | 'cash_in' | 'cash_out' | 'adjustment'
 

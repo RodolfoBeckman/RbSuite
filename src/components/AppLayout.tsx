@@ -79,6 +79,18 @@ export default function AppLayout() {
         >
           {labels.navCaja}
         </NavLink>
+        <NavLink
+          to="/ventas"
+          className={({ isActive }) =>
+            `border-b-2 py-3 text-sm font-semibold ${
+              isActive
+                ? 'border-brand text-brand-dark dark:border-brand-light dark:text-brand-light'
+                : 'border-transparent text-gray-500 dark:text-gray-400'
+            }`
+          }
+        >
+          {labels.navVentas}
+        </NavLink>
       </nav>
 
       <main className="p-6">
