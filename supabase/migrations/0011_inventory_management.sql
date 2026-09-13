@@ -7,7 +7,7 @@
 -- definer, que insertan movimientos sin pasar por las políticas de abajo).
 --
 -- Esta migración:
--- 1. Agrega current_role(), un helper que faltaba para poder exigir rol en
+-- 1. Agrega current_membership_role(), un helper que faltaba para poder exigir rol en
 --    políticas de RLS (0002 solo validaba que el negocio coincidiera, no
 --    el rol — un Vendedor podía en teoría cambiar un precio de venta
 --    llamando la API de PostgREST directo).
@@ -18,7 +18,7 @@
 --    opcional), siguiendo el mismo patrón de RPC que el resto del
 --    proyecto usa para operaciones multi-tabla.
 
-create or replace function current_role()
+create or replace function current_membership_role()
 returns role_name
 language sql stable
 as $$
@@ -33,28 +33,28 @@ drop policy "insert_inventory_movements_in_scope" on inventory_movements;
 
 create policy "insert_services_in_business" on services
   for insert with check (
-    business_id = current_business_id() and current_role() in ('administrador', 'gerente')
+    business_id = current_business_id() and current_membership_role() in ('administrador', 'gerente')
   );
 
 create policy "update_services_in_business" on services
   for update using (
-    business_id = current_business_id() and current_role() in ('administrador', 'gerente')
+    business_id = current_business_id() and current_membership_role() in ('administrador', 'gerente')
   )
   with check (
-    business_id = current_business_id() and current_role() in ('administrador', 'gerente')
+    business_id = current_business_id() and current_membership_role() in ('administrador', 'gerente')
   );
 
 create policy "insert_business_products_in_business" on business_products
   for insert with check (
-    business_id = current_business_id() and current_role() in ('administrador', 'gerente')
+    business_id = current_business_id() and current_membership_role() in ('administrador', 'gerente')
   );
 
 create policy "update_business_products_in_business" on business_products
   for update using (
-    business_id = current_business_id() and current_role() in ('administrador', 'gerente')
+    business_id = current_business_id() and current_membership_role() in ('administrador', 'gerente')
   )
   with check (
-    business_id = current_business_id() and current_role() in ('administrador', 'gerente')
+    business_id = current_business_id() and current_membership_role() in ('administrador', 'gerente')
   );
 
 create policy "insert_inventory_movements_in_scope" on inventory_movements
@@ -62,7 +62,7 @@ create policy "insert_inventory_movements_in_scope" on inventory_movements
     business_id = current_business_id()
     and branch_id = any(current_branch_ids())
     and created_by_user_id = auth.uid()
-    and current_role() in ('administrador', 'gerente')
+    and current_membership_role() in ('administrador', 'gerente')
     and exists (
       select 1 from business_products bp
       where bp.id = business_product_id and bp.business_id = business_id
@@ -91,7 +91,7 @@ declare
   v_product_id uuid;
   v_business_product_id uuid;
 begin
-  if current_role() not in ('administrador', 'gerente') then
+  if current_membership_role() not in ('administrador', 'gerente') then
     raise exception 'No tienes permiso para agregar productos';
   end if;
 
