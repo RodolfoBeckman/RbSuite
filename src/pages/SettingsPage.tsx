@@ -1,5 +1,6 @@
-import { useEffect, useState, type ChangeEvent } from 'react'
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
+import LogoUploader from '../components/LogoUploader'
 import {
   DEFAULT_PRIMARY_COLOR,
   useBranding,
@@ -59,7 +60,7 @@ export default function SettingsPage() {
           </NavLink>
         ))}
       </nav>
-      <div className="max-w-lg flex-1">
+      <div className="max-w-2xl flex-1">
         <Outlet />
       </div>
     </div>
@@ -92,9 +93,7 @@ export function BrandingSection() {
     })
   }
 
-  function handleLogoChange(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0]
-    if (!file) return
+  function handleLogoFile(file: File) {
     setFeedback(null)
     uploadLogo.mutate(file, {
       onSuccess: () => setFeedback({ type: 'success', text: 'Logo actualizado' }),
@@ -104,7 +103,6 @@ export function BrandingSection() {
           text: error instanceof Error ? error.message : 'No se pudo subir el logo',
         }),
     })
-    event.target.value = ''
   }
 
   if (isLoading) {
@@ -121,30 +119,12 @@ export function BrandingSection() {
         </p>
 
         <label className="mb-1 block text-sm text-gray-600 dark:text-gray-300">Logo</label>
-        <div className="mb-5 flex items-center gap-3">
-          <div className="flex h-14 w-14 items-center justify-center rounded-lg border border-gray-200 dark:border-gray-600">
-            {branding?.logoUrl ? (
-              <img
-                src={branding.logoUrl}
-                alt="Logo actual"
-                className="h-full w-full rounded-lg object-contain"
-              />
-            ) : (
-              <span className="text-xs text-gray-400">Sin logo</span>
-            )}
-          </div>
-          <div>
-            <input
-              type="file"
-              accept="image/png,image/jpeg,image/svg+xml,image/webp"
-              onChange={handleLogoChange}
-              disabled={uploadLogo.isPending}
-              className="block text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-tint file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-brand-dark hover:file:bg-brand/20 dark:text-gray-300 dark:file:text-brand-light"
-            />
-            {uploadLogo.isPending && (
-              <p className="mt-1 text-xs text-gray-400">Subiendo…</p>
-            )}
-          </div>
+        <div className="mb-5">
+          <LogoUploader
+            currentUrl={branding?.logoUrl ?? null}
+            uploading={uploadLogo.isPending}
+            onSelect={handleLogoFile}
+          />
         </div>
 
         <label className="mb-1 block text-sm text-gray-600 dark:text-gray-300">
@@ -161,7 +141,7 @@ export function BrandingSection() {
           <button
             onClick={handleSaveColor}
             disabled={updateColor.isPending}
-            className="ml-auto rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-50"
+            className="ml-auto rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-brand-dark disabled:opacity-50"
           >
             {updateColor.isPending ? 'Guardando…' : 'Guardar'}
           </button>
@@ -289,7 +269,7 @@ export function TeamSection() {
         <button
           onClick={handleInvite}
           disabled={inviteMember.isPending || !invite.email.trim()}
-          className="mt-3 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-50"
+          className="mt-3 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-brand-dark disabled:opacity-50"
         >
           {inviteMember.isPending ? 'Enviando…' : 'Enviar invitación'}
         </button>
@@ -384,14 +364,14 @@ function TeamMemberRow({
           <button
             onClick={handleSave}
             disabled={!dirty || updateMember.isPending}
-            className="rounded-lg bg-brand px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-50"
+            className="rounded-lg bg-brand px-3 py-1.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-brand-dark disabled:opacity-50"
           >
             {updateMember.isPending ? 'Guardando…' : 'Guardar'}
           </button>
           <button
             onClick={handleRemove}
             disabled={removeMember.isPending}
-            className="ml-auto rounded-lg border border-danger px-3 py-1.5 text-sm font-semibold text-danger hover:bg-danger/10 disabled:opacity-50"
+            className="ml-auto rounded-lg border border-danger px-3 py-1.5 text-sm font-semibold text-danger transition-colors duration-150 hover:bg-danger/10 disabled:opacity-50"
           >
             Quitar
           </button>
@@ -497,7 +477,7 @@ export function BranchesSection() {
         <button
           onClick={handleCreate}
           disabled={createBranch.isPending || !newBranch.name.trim()}
-          className="mt-3 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-50"
+          className="mt-3 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-brand-dark disabled:opacity-50"
         >
           {createBranch.isPending ? 'Creando…' : 'Agregar sucursal'}
         </button>
@@ -579,7 +559,7 @@ function BranchRow({ branch }: { branch: BranchDetail }) {
         <button
           onClick={handleSave}
           disabled={!dirty || updateBranch.isPending}
-          className="ml-auto rounded-lg bg-brand px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-50"
+          className="ml-auto rounded-lg bg-brand px-3 py-1.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-brand-dark disabled:opacity-50"
         >
           {updateBranch.isPending ? 'Guardando…' : 'Guardar'}
         </button>
@@ -645,7 +625,7 @@ export function LabelsSection() {
       <button
         onClick={handleSave}
         disabled={updateLabels.isPending}
-        className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-50"
+        className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-brand-dark disabled:opacity-50"
       >
         {updateLabels.isPending ? 'Guardando…' : 'Guardar textos'}
       </button>

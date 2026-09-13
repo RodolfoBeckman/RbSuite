@@ -21,7 +21,7 @@ export default function BranchPicker({ title }: { title: string }) {
             <button
               key={branch.id}
               onClick={() => setActiveBranchId(branch.id)}
-              className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:border-brand hover:text-brand-dark dark:border-gray-600 dark:text-gray-200 dark:hover:text-brand-light"
+              className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors duration-150 hover:border-brand hover:text-brand-dark dark:border-gray-600 dark:text-gray-200 dark:hover:text-brand-light"
             >
               {branch.name}
             </button>

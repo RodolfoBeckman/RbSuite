@@ -75,7 +75,7 @@ export default function SalesHistoryPage() {
                 <button
                   onClick={() => handleCancel(sale.id, sale.folio)}
                   disabled={cancelSale.isPending}
-                  className="rounded-lg border border-danger px-2.5 py-1 text-xs font-semibold text-danger hover:bg-danger/10 disabled:opacity-50"
+                  className="rounded-lg border border-danger px-2.5 py-1 text-xs font-semibold text-danger transition-colors duration-150 hover:bg-danger/10 disabled:opacity-50"
                 >
                   Cancelar
                 </button>

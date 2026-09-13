@@ -111,7 +111,7 @@ function ProductsSection({ branchId }: { branchId: string }) {
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
+          className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-brand-dark"
         >
           + Agregar producto
         </button>
@@ -315,7 +315,7 @@ function ProductFormModal({ branchId, onClose }: { branchId: string; onClose: ()
                       key={match.id}
                       type="button"
                       onClick={() => handlePickMatch(match)}
-                      className="block w-full rounded-lg border border-gray-200 p-2 text-left text-sm hover:border-brand dark:border-gray-600"
+                      className="block w-full rounded-lg border border-gray-200 p-2 text-left text-sm transition-colors duration-150 hover:border-brand dark:border-gray-600"
                     >
                       <span className="font-medium">{match.name}</span>
                       {match.brandName && <span className="text-gray-400"> · {match.brandName}</span>}
@@ -462,7 +462,7 @@ function ProductFormModal({ branchId, onClose }: { branchId: string; onClose: ()
               (!usingExisting && (!form.name.trim() || !form.unitId)) ||
               !form.salePrice
             }
-            className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-50"
+            className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-brand-dark disabled:opacity-50"
           >
             {createProduct.isPending ? 'Agregando…' : 'Agregar producto'}
           </button>
@@ -554,7 +554,7 @@ function ProductRow({ product, branchId }: { product: BusinessProduct; branchId:
           </span>
           <button
             onClick={() => setShowAdjust(true)}
-            className="ml-2 text-xs text-brand-dark underline hover:no-underline dark:text-brand-light"
+            className="ml-2 text-xs text-brand-dark underline transition-colors duration-150 hover:no-underline dark:text-brand-light"
           >
             Ajustar
           </button>
@@ -570,7 +570,7 @@ function ProductRow({ product, branchId }: { product: BusinessProduct; branchId:
           <button
             onClick={handleSave}
             disabled={!dirty || updateProduct.isPending}
-            className="rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-dark disabled:opacity-50"
+            className="rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white transition-colors duration-150 hover:bg-brand-dark disabled:opacity-50"
           >
             {updateProduct.isPending ? '…' : 'Guardar'}
           </button>
@@ -657,7 +657,7 @@ function AdjustStockModal({
           <button
             onClick={handleSubmit}
             disabled={adjustStock.isPending || !quantity}
-            className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-50"
+            className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-brand-dark disabled:opacity-50"
           >
             {adjustStock.isPending ? 'Guardando…' : 'Registrar movimiento'}
           </button>
@@ -746,7 +746,7 @@ function ServicesSection() {
         <button
           onClick={handleCreate}
           disabled={createService.isPending || !form.name.trim() || !form.price}
-          className="mt-3 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-50"
+          className="mt-3 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-brand-dark disabled:opacity-50"
         >
           {createService.isPending ? 'Agregando…' : 'Agregar servicio'}
         </button>
@@ -825,7 +825,7 @@ function ServiceRow({ service }: { service: ServiceItem }) {
           <button
             onClick={handleSave}
             disabled={!dirty || updateService.isPending}
-            className="ml-auto rounded-lg bg-brand px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-50"
+            className="ml-auto rounded-lg bg-brand px-3 py-1.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-brand-dark disabled:opacity-50"
           >
             {updateService.isPending ? 'Guardando…' : 'Guardar'}
           </button>

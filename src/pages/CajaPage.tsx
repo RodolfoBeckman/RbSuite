@@ -74,7 +74,7 @@ export default function CajaPage() {
             createRegister.mutate({ branchId: activeBranchId, name: 'Caja principal' })
           }
           disabled={createRegister.isPending}
-          className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-50"
+          className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-brand-dark disabled:opacity-50"
         >
           {createRegister.isPending ? 'Creando…' : 'Crear caja principal'}
         </button>
@@ -143,7 +143,7 @@ export default function CajaPage() {
             )
           }}
           disabled={openSession.isPending}
-          className="w-full rounded-lg bg-brand py-2.5 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-50"
+          className="w-full rounded-lg bg-brand py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-brand-dark disabled:opacity-50"
         >
           {openSession.isPending ? 'Abriendo…' : 'Abrir caja'}
         </button>
@@ -240,7 +240,7 @@ export default function CajaPage() {
             )
           }}
           disabled={registerMovement.isPending}
-          className="w-full rounded-lg border border-gray-300 py-2 text-sm font-semibold text-gray-700 hover:border-brand disabled:opacity-50 dark:border-gray-600 dark:text-gray-200"
+          className="w-full rounded-lg border border-gray-300 py-2 text-sm font-semibold text-gray-700 transition-colors duration-150 hover:border-brand disabled:opacity-50 dark:border-gray-600 dark:text-gray-200"
         >
           {registerMovement.isPending ? 'Guardando…' : 'Registrar movimiento'}
         </button>
