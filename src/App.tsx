@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { ProtectedRoute } from './auth/ProtectedRoute'
 import AppLayout from './components/AppLayout'
 import LoginPage from './pages/LoginPage'
@@ -7,7 +7,12 @@ import DashboardPage from './pages/DashboardPage'
 import PosPage from './pages/PosPage'
 import CajaPage from './pages/CajaPage'
 import SalesHistoryPage from './pages/SalesHistoryPage'
-import SettingsPage from './pages/SettingsPage'
+import SettingsPage, {
+  BrandingSection,
+  BranchesSection,
+  TeamSection,
+  LabelsSection,
+} from './pages/SettingsPage'
 
 export default function App() {
   return (
@@ -22,7 +27,13 @@ export default function App() {
           <Route path="/caja" element={<CajaPage />} />
           <Route path="/ventas" element={<SalesHistoryPage />} />
           <Route element={<ProtectedRoute allowedRoles={['administrador']} />}>
-            <Route path="/configuracion" element={<SettingsPage />} />
+            <Route path="/configuracion" element={<SettingsPage />}>
+              <Route index element={<Navigate to="marca" replace />} />
+              <Route path="marca" element={<BrandingSection />} />
+              <Route path="sucursales" element={<BranchesSection />} />
+              <Route path="equipo" element={<TeamSection />} />
+              <Route path="etiquetas" element={<LabelsSection />} />
+            </Route>
           </Route>
         </Route>
       </Route>

@@ -1,4 +1,5 @@
 import { useEffect, useState, type ChangeEvent } from 'react'
+import { NavLink, Outlet } from 'react-router-dom'
 import {
   DEFAULT_PRIMARY_COLOR,
   useBranding,
@@ -31,7 +32,41 @@ const LABEL_FIELDS: { key: keyof Labels; hint: string }[] = [
   { key: 'posTitle', hint: 'Título dentro del punto de venta' },
 ]
 
+const SETTINGS_NAV = [
+  { to: 'marca', label: 'Marca' },
+  { to: 'sucursales', label: 'Sucursales' },
+  { to: 'equipo', label: 'Equipo' },
+  { to: 'etiquetas', label: 'Etiquetas' },
+]
+
 export default function SettingsPage() {
+  return (
+    <div className="flex flex-col gap-6 md:flex-row md:items-start">
+      <nav className="flex gap-2 overflow-x-auto md:w-48 md:flex-none md:flex-col md:gap-1">
+        {SETTINGS_NAV.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            className={({ isActive }) =>
+              `whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+                isActive
+                  ? 'bg-brand-tint text-brand-dark dark:bg-brand/20 dark:text-brand-light'
+                  : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'
+              }`
+            }
+          >
+            {item.label}
+          </NavLink>
+        ))}
+      </nav>
+      <div className="max-w-lg flex-1">
+        <Outlet />
+      </div>
+    </div>
+  )
+}
+
+export function BrandingSection() {
   const { data: branding, isLoading } = useBranding()
   const updateColor = useUpdateBrandColor()
   const uploadLogo = useUploadLogo()
@@ -77,8 +112,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="max-w-lg space-y-4">
-      <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+    <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
         <h2 className="mb-1 font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
           Marca de tu negocio
         </h2>
@@ -140,11 +174,6 @@ export default function SettingsPage() {
             {feedback.text}
           </p>
         )}
-      </div>
-
-      <BranchesSection />
-      <TeamSection />
-      <LabelsSection />
     </div>
   )
 }
@@ -155,7 +184,7 @@ const ROLE_OPTIONS: { value: RoleName; label: string }[] = [
   { value: 'vendedor', label: 'Vendedor' },
 ]
 
-function TeamSection() {
+export function TeamSection() {
   const { data: members, isLoading } = useTeamMembers()
   const { data: branches } = useBranches()
   const inviteMember = useInviteTeamMember()
@@ -381,7 +410,7 @@ const TIMEZONE_OPTIONS = [
   'America/Hermosillo',
 ]
 
-function BranchesSection() {
+export function BranchesSection() {
   const { data: branches, isLoading } = useManageBranches()
   const createBranch = useCreateBranch()
 
@@ -561,7 +590,7 @@ function BranchRow({ branch }: { branch: BranchDetail }) {
   )
 }
 
-function LabelsSection() {
+export function LabelsSection() {
   const labels = useLabels()
   const updateLabels = useUpdateLabels()
 
