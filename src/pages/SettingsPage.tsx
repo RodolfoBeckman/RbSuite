@@ -7,12 +7,21 @@ import {
 } from '../hooks/useBranding'
 import { useLabels, useUpdateLabels } from '../hooks/useLabels'
 import {
+  useBranches,
   useCreateBranch,
   useManageBranches,
   useUpdateBranch,
   type BranchDetail,
 } from '../hooks/useBranches'
+import {
+  useInviteTeamMember,
+  useRemoveTeamMember,
+  useTeamMembers,
+  useUpdateTeamMember,
+  type TeamMember,
+} from '../hooks/useTeam'
 import type { Labels } from '../labels/defaultLabels'
+import type { RoleName } from '../types'
 
 const LABEL_FIELDS: { key: keyof Labels; hint: string }[] = [
   { key: 'navDashboard', hint: 'Menú — Dashboard' },
@@ -134,7 +143,233 @@ export default function SettingsPage() {
       </div>
 
       <BranchesSection />
+      <TeamSection />
       <LabelsSection />
+    </div>
+  )
+}
+
+const ROLE_OPTIONS: { value: RoleName; label: string }[] = [
+  { value: 'administrador', label: 'Administrador' },
+  { value: 'gerente', label: 'Gerente' },
+  { value: 'vendedor', label: 'Vendedor' },
+]
+
+function TeamSection() {
+  const { data: members, isLoading } = useTeamMembers()
+  const { data: branches } = useBranches()
+  const inviteMember = useInviteTeamMember()
+
+  const [invite, setInvite] = useState<{ email: string; role: RoleName; branchId: string }>({
+    email: '',
+    role: 'vendedor',
+    branchId: '',
+  })
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(
+    null,
+  )
+
+  function handleInvite() {
+    if (!invite.email.trim()) return
+    if (invite.role === 'vendedor' && !invite.branchId) {
+      setFeedback({ type: 'error', text: 'Elige la sucursal del vendedor' })
+      return
+    }
+    setFeedback(null)
+    inviteMember.mutate(
+      {
+        email: invite.email.trim(),
+        role: invite.role,
+        branchId: invite.role === 'vendedor' ? invite.branchId : null,
+      },
+      {
+        onSuccess: () => {
+          setFeedback({ type: 'success', text: 'Invitación enviada' })
+          setInvite({ email: '', role: 'vendedor', branchId: '' })
+        },
+        onError: (error) =>
+          setFeedback({
+            type: 'error',
+            text: error instanceof Error ? error.message : 'No se pudo enviar la invitación',
+          }),
+      },
+    )
+  }
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+      <h2 className="mb-1 font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
+        Equipo
+      </h2>
+      <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
+        Invita a tu equipo y asigna su rol y sucursal. Administrador y Gerente ven todas las
+        sucursales; un Vendedor queda restringido a la suya.
+      </p>
+
+      <div className="mb-5 space-y-3">
+        {isLoading && <p className="text-sm text-gray-500 dark:text-gray-400">Cargando…</p>}
+        {members?.map((member) => (
+          <TeamMemberRow key={member.userId} member={member} branches={branches ?? []} />
+        ))}
+        {members?.length === 0 && (
+          <p className="text-sm text-gray-400">Aún no tienes compañeros invitados.</p>
+        )}
+      </div>
+
+      <div className="rounded-lg border border-dashed border-gray-300 p-4 dark:border-gray-600">
+        <p className="mb-3 text-sm font-medium text-gray-600 dark:text-gray-300">
+          Invitar a alguien
+        </p>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <input
+            type="email"
+            placeholder="correo@ejemplo.com"
+            value={invite.email}
+            onChange={(event) => setInvite((prev) => ({ ...prev, email: event.target.value }))}
+            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+          />
+          <select
+            value={invite.role}
+            onChange={(event) =>
+              setInvite((prev) => ({ ...prev, role: event.target.value as RoleName }))
+            }
+            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+          >
+            {ROLE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <select
+            value={invite.branchId}
+            onChange={(event) => setInvite((prev) => ({ ...prev, branchId: event.target.value }))}
+            disabled={invite.role !== 'vendedor'}
+            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none disabled:opacity-50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+          >
+            <option value="">
+              {invite.role === 'vendedor' ? 'Elige sucursal' : 'Todas las sucursales'}
+            </option>
+            {(branches ?? []).map((branch) => (
+              <option key={branch.id} value={branch.id}>
+                {branch.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <button
+          onClick={handleInvite}
+          disabled={inviteMember.isPending || !invite.email.trim()}
+          className="mt-3 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-50"
+        >
+          {inviteMember.isPending ? 'Enviando…' : 'Enviar invitación'}
+        </button>
+      </div>
+
+      {feedback && (
+        <p className={`mt-3 text-sm ${feedback.type === 'success' ? 'text-success' : 'text-danger'}`}>
+          {feedback.text}
+        </p>
+      )}
+    </div>
+  )
+}
+
+function TeamMemberRow({
+  member,
+  branches,
+}: {
+  member: TeamMember
+  branches: { id: string; name: string }[]
+}) {
+  const updateMember = useUpdateTeamMember()
+  const removeMember = useRemoveTeamMember()
+
+  const [form, setForm] = useState<{ role: RoleName; branchId: string }>({
+    role: member.role,
+    branchId: member.branchId ?? '',
+  })
+  const [feedback, setFeedback] = useState<'success' | 'error' | null>(null)
+
+  const dirty = form.role !== member.role || form.branchId !== (member.branchId ?? '')
+
+  function handleSave() {
+    if (form.role === 'vendedor' && !form.branchId) {
+      setFeedback('error')
+      return
+    }
+    setFeedback(null)
+    updateMember.mutate(
+      {
+        userId: member.userId,
+        role: form.role,
+        branchId: form.role === 'vendedor' ? form.branchId : null,
+      },
+      {
+        onSuccess: () => setFeedback('success'),
+        onError: () => setFeedback('error'),
+      },
+    )
+  }
+
+  function handleRemove() {
+    if (!confirm(`¿Quitar acceso a ${member.email}?`)) return
+    removeMember.mutate(member.userId)
+  }
+
+  return (
+    <div className="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+      <p className="mb-2 truncate text-sm font-medium text-gray-700 dark:text-gray-200">
+        {member.email}
+      </p>
+      <div className="grid gap-3 sm:grid-cols-3">
+        <select
+          value={form.role}
+          onChange={(event) =>
+            setForm((prev) => ({ ...prev, role: event.target.value as RoleName }))
+          }
+          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+        >
+          {ROLE_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <select
+          value={form.branchId}
+          onChange={(event) => setForm((prev) => ({ ...prev, branchId: event.target.value }))}
+          disabled={form.role !== 'vendedor'}
+          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none disabled:opacity-50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+        >
+          <option value="">
+            {form.role === 'vendedor' ? 'Elige sucursal' : 'Todas las sucursales'}
+          </option>
+          {branches.map((branch) => (
+            <option key={branch.id} value={branch.id}>
+              {branch.name}
+            </option>
+          ))}
+        </select>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleSave}
+            disabled={!dirty || updateMember.isPending}
+            className="rounded-lg bg-brand px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-50"
+          >
+            {updateMember.isPending ? 'Guardando…' : 'Guardar'}
+          </button>
+          <button
+            onClick={handleRemove}
+            disabled={removeMember.isPending}
+            className="ml-auto rounded-lg border border-danger px-3 py-1.5 text-sm font-semibold text-danger hover:bg-danger/10 disabled:opacity-50"
+          >
+            Quitar
+          </button>
+        </div>
+      </div>
+      {feedback === 'success' && <p className="mt-2 text-sm text-success">Guardado</p>}
+      {feedback === 'error' && <p className="mt-2 text-sm text-danger">Error al guardar</p>}
     </div>
   )
 }

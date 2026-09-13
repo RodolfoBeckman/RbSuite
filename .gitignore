@@ -4,3 +4,4 @@ dist
 .DS_Store
 *.tsbuildinfo
 rb-suite-contexto-claude-code.md
+supabase/.temp
