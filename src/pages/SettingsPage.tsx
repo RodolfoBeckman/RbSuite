@@ -666,8 +666,44 @@ function formatAuditDetails(details: Record<string, unknown>): string {
 
 const auditDateFormat = new Intl.DateTimeFormat('es-MX', { dateStyle: 'short', timeStyle: 'short' })
 
+const DATE_PRESETS: { value: string; label: string }[] = [
+  { value: 'today', label: 'Hoy' },
+  { value: 'yesterday', label: 'Ayer' },
+  { value: 'last7', label: 'Últimos 7 días' },
+  { value: 'all', label: 'Todo' },
+]
+
+function startOfDay(date: Date): Date {
+  const copy = new Date(date)
+  copy.setHours(0, 0, 0, 0)
+  return copy
+}
+
+function presetRange(preset: string): { from?: Date; to?: Date } {
+  const today = startOfDay(new Date())
+  if (preset === 'today') return { from: today }
+  if (preset === 'yesterday') {
+    const from = new Date(today)
+    from.setDate(from.getDate() - 1)
+    return { from, to: today }
+  }
+  if (preset === 'last7') {
+    const from = new Date(today)
+    from.setDate(from.getDate() - 6)
+    return { from }
+  }
+  return {}
+}
+
 export function AuditLogSection() {
-  const { data, isLoading, loadMore } = useAuditLogs()
+  const [preset, setPreset] = useState('today')
+  const [actionFilter, setActionFilter] = useState<string | null>(null)
+  const range = presetRange(preset)
+  const { data, isLoading, loadMore } = useAuditLogs({
+    from: range.from,
+    to: range.to,
+    action: actionFilter,
+  })
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
@@ -678,6 +714,36 @@ export function AuditLogSection() {
         Quién hizo qué en acciones sensibles: cancelar ventas, cambiar precios, ajustar
         inventario, retiros de caja, y cambios al equipo.
       </p>
+
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <div className="flex gap-1 rounded-lg bg-gray-100 p-1 dark:bg-gray-900">
+          {DATE_PRESETS.map((item) => (
+            <button
+              key={item.value}
+              onClick={() => setPreset(item.value)}
+              className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors duration-150 ${
+                preset === item.value
+                  ? 'bg-white text-brand-dark shadow-sm dark:bg-gray-700 dark:text-brand-light'
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+        <select
+          value={actionFilter ?? ''}
+          onChange={(event) => setActionFilter(event.target.value || null)}
+          className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs focus:border-brand focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+        >
+          <option value="">Todas las acciones</option>
+          {Object.entries(ACTION_LABEL).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+      </div>
 
       <div className="space-y-2">
         {isLoading && <p className="text-sm text-gray-500 dark:text-gray-400">Cargando…</p>}
