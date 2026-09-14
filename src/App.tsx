@@ -13,6 +13,7 @@ import SettingsPage, {
   BranchesSection,
   TeamSection,
   LabelsSection,
+  AuditLogSection,
 } from './pages/SettingsPage'
 
 export default function App() {
@@ -37,6 +38,7 @@ export default function App() {
               <Route path="sucursales" element={<BranchesSection />} />
               <Route path="equipo" element={<TeamSection />} />
               <Route path="etiquetas" element={<LabelsSection />} />
+              <Route path="auditoria" element={<AuditLogSection />} />
             </Route>
           </Route>
         </Route>

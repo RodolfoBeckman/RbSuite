@@ -50,6 +50,13 @@ Deno.serve(async (req) => {
       throw new Error('Solo un administrador puede invitar usuarios')
     }
 
+    // Se guarda aparte porque el insert de abajo corre con la service role
+    // key (adminClient, sin JWT de usuario) — sin esto, el trigger de
+    // auditoría de memberships no tendría forma de saber quién invitó.
+    const {
+      data: { user: callerUser },
+    } = await callerClient.auth.getUser()
+
     if (finalBranchId) {
       const { data: branch, error: branchError } = await callerClient
         .from('branches')
@@ -73,6 +80,7 @@ Deno.serve(async (req) => {
       business_id: callerMembership.business_id,
       branch_id: finalBranchId,
       role,
+      created_by_user_id: callerUser?.id ?? null,
     })
     if (insertError) {
       // El usuario de Auth ya quedó creado (la invitación se envió); si el

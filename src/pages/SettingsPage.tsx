@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import LogoUploader from '../components/LogoUploader'
+import { useAuditLogs } from '../hooks/useAuditLogs'
 import {
   DEFAULT_PRIMARY_COLOR,
   useBranding,
@@ -38,6 +39,7 @@ const SETTINGS_NAV = [
   { to: 'sucursales', label: 'Sucursales' },
   { to: 'equipo', label: 'Equipo' },
   { to: 'etiquetas', label: 'Etiquetas' },
+  { to: 'auditoria', label: 'Auditoría' },
 ]
 
 export default function SettingsPage() {
@@ -634,6 +636,85 @@ export function LabelsSection() {
         <p className={`mt-3 text-sm ${feedback.type === 'success' ? 'text-success' : 'text-danger'}`}>
           {feedback.text}
         </p>
+      )}
+    </div>
+  )
+}
+
+const ACTION_LABEL: Record<string, string> = {
+  cancel_sale: 'Canceló una venta',
+  create_business_product: 'Agregó un producto',
+  update_business_product: 'Editó un producto',
+  adjust_stock: 'Ajustó inventario',
+  cash_withdrawal: 'Retiro de caja',
+  invite_team_member: 'Invitó a un miembro del equipo',
+  update_team_member: 'Cambió rol/sucursal de un miembro',
+  remove_team_member: 'Quitó acceso a un miembro',
+}
+
+function formatAuditDetails(details: Record<string, unknown>): string {
+  return Object.entries(details ?? {})
+    .map(([key, value]) => {
+      if (value && typeof value === 'object' && 'before' in (value as object) && 'after' in (value as object)) {
+        const { before, after } = value as { before: unknown; after: unknown }
+        return `${key}: ${before ?? '—'} → ${after ?? '—'}`
+      }
+      return `${key}: ${value ?? '—'}`
+    })
+    .join(' · ')
+}
+
+const auditDateFormat = new Intl.DateTimeFormat('es-MX', { dateStyle: 'short', timeStyle: 'short' })
+
+export function AuditLogSection() {
+  const { data, isLoading, loadMore } = useAuditLogs()
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+      <h2 className="mb-1 font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
+        Auditoría
+      </h2>
+      <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
+        Quién hizo qué en acciones sensibles: cancelar ventas, cambiar precios, ajustar
+        inventario, retiros de caja, y cambios al equipo.
+      </p>
+
+      <div className="space-y-2">
+        {isLoading && <p className="text-sm text-gray-500 dark:text-gray-400">Cargando…</p>}
+        {data?.items.map((entry) => {
+          const details = formatAuditDetails(entry.details)
+          return (
+            <div
+              key={entry.id}
+              className="rounded-lg border border-gray-200 p-3 text-sm dark:border-gray-700"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="font-medium text-gray-700 dark:text-gray-200">
+                  {ACTION_LABEL[entry.action] ?? entry.action}
+                </span>
+                <span className="text-xs text-gray-400">
+                  {auditDateFormat.format(new Date(entry.createdAt))}
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                {entry.actorEmail ?? 'Sistema'}
+              </p>
+              {details && <p className="mt-1 text-xs text-gray-400">{details}</p>}
+            </div>
+          )
+        })}
+        {data?.items.length === 0 && !isLoading && (
+          <p className="text-sm text-gray-400">Sin actividad registrada todavía.</p>
+        )}
+      </div>
+
+      {data?.hasMore && (
+        <button
+          onClick={loadMore}
+          className="mt-4 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition-colors duration-150 hover:border-brand hover:text-brand-dark dark:border-gray-600 dark:text-gray-300"
+        >
+          Cargar más
+        </button>
       )}
     </div>
   )
