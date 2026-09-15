@@ -12,7 +12,7 @@ const ROLE_LABEL: Record<string, string> = {
 }
 
 function navLinkClass(isActive: boolean) {
-  return `border-b-2 py-3 text-sm font-semibold transition-colors duration-150 ${
+  return `shrink-0 whitespace-nowrap border-b-2 py-3 text-sm font-semibold transition-colors duration-150 ${
     isActive
       ? 'border-brand text-brand-dark dark:border-brand-light dark:text-brand-light'
       : 'border-transparent text-gray-500 hover:text-brand-dark dark:text-gray-400 dark:hover:text-brand-light'
@@ -29,19 +29,19 @@ export default function AppLayout() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <header className="flex items-center justify-between bg-brand px-6 py-3.5 text-white">
-        <div className="flex items-center gap-2.5">
+      <header className="flex items-center justify-between gap-2 bg-brand px-3 py-3.5 text-white sm:px-6">
+        <div className="flex min-w-0 items-center gap-2.5">
           <img
             src={branding?.logoUrl ?? '/logo-mark.svg'}
             alt="Logo del negocio"
-            className="h-8 w-8 rounded object-contain"
+            className="h-8 w-8 shrink-0 rounded object-contain"
           />
           <span className="font-platform text-xl font-semibold">RB Suite</span>
-          <span className="text-sm text-white/75">
+          <span className="hidden truncate text-sm text-white/75 sm:inline">
             {membership?.branchId ? 'Sucursal asignada' : 'Todas las sucursales'}
           </span>
         </div>
-        <div className="flex items-center gap-4 text-sm">
+        <div className="flex shrink-0 items-center gap-3 text-sm sm:gap-4">
           <button
             onClick={toggleTheme}
             aria-label="Cambiar tema"
@@ -49,7 +49,7 @@ export default function AppLayout() {
           >
             {theme === 'dark' ? '☀️' : '🌙'}
           </button>
-          <span className="text-white/85">
+          <span className="hidden text-white/85 sm:inline">
             {membership ? ROLE_LABEL[membership.role] : '—'}
           </span>
           <button
@@ -61,7 +61,7 @@ export default function AppLayout() {
         </div>
       </header>
 
-      <nav className="flex gap-6 border-b border-gray-200 bg-white px-6 dark:border-gray-700 dark:bg-gray-800">
+      <nav className="flex gap-6 overflow-x-auto border-b border-gray-200 bg-white px-6 dark:border-gray-700 dark:bg-gray-800">
         <NavLink to="/" end className={({ isActive }) => navLinkClass(isActive)}>
           {labels.navDashboard}
         </NavLink>
