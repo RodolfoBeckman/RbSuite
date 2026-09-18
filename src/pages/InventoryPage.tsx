@@ -27,9 +27,52 @@ import {
 } from '../hooks/useInventory'
 
 const inputClass =
-  'rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100'
+  'rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm transition-colors duration-150 focus:border-brand focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100'
 
 const PAGE_SIZES = [10, 25, 50, 100]
+
+function PlusIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
+      <path strokeLinecap="round" d="M12 5v14M5 12h14" />
+    </svg>
+  )
+}
+
+function SearchIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
+      <circle cx="11" cy="11" r="7" />
+      <path strokeLinecap="round" d="m21 21-4.3-4.3" />
+    </svg>
+  )
+}
+
+function BoxIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="m3.5 7 8.5-4 8.5 4-8.5 4-8.5-4Z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.5 7v10l8.5 4 8.5-4V7M12 11v10" />
+    </svg>
+  )
+}
+
+function SparklesIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M11 3v3M11 17v3M3 11h3M17 11h3M5.5 5.5l2 2M14.5 14.5l2 2M16.5 5.5l-2 2M7.5 14.5l-2 2" />
+      <circle cx="11" cy="11" r="2.5" />
+    </svg>
+  )
+}
+
+function WarningIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.3 3.9 2.7 17.1a1.5 1.5 0 0 0 1.3 2.4h16a1.5 1.5 0 0 0 1.3-2.4L13.7 3.9a1.5 1.5 0 0 0-2.6 0Z" />
+    </svg>
+  )
+}
 
 export default function InventoryPage() {
   const activeBranchId = useActiveBranch()
@@ -79,10 +122,10 @@ function TabButton({
   return (
     <button
       onClick={onClick}
-      className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
+      className={`rounded-lg px-4 py-2 text-sm font-semibold shadow-sm transition-all duration-150 ${
         active
           ? 'bg-brand text-white'
-          : 'bg-white text-gray-500 hover:text-brand-dark dark:bg-gray-800 dark:text-gray-400'
+          : 'bg-white text-gray-500 hover:-translate-y-0.5 hover:text-brand-dark hover:shadow-md dark:bg-gray-800 dark:text-gray-400'
       }`}
     >
       {children}
@@ -107,30 +150,37 @@ function ProductsSection({ branchId }: { branchId: string }) {
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+    <div className="animate-fade-in rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
-            Productos
-          </h2>
+          <div className="flex items-center gap-2">
+            <BoxIcon className="h-5 w-5 text-brand" />
+            <h2 className="font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
+              Productos
+            </h2>
+          </div>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             El precio es el mismo en todas las sucursales; el stock es el de la sucursal activa.
           </p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-brand-dark"
+          className="flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-md"
         >
-          + Agregar producto
+          <PlusIcon className="h-4 w-4" />
+          Agregar producto
         </button>
       </div>
 
-      <input
-        value={search}
-        onChange={(event) => handleSearchChange(event.target.value)}
-        placeholder="Buscar por nombre o código de barras…"
-        className={`${inputClass} mb-4 w-full`}
-      />
+      <div className="relative mb-4">
+        <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+        <input
+          value={search}
+          onChange={(event) => handleSearchChange(event.target.value)}
+          placeholder="Buscar por nombre o código de barras…"
+          className={`${inputClass} w-full pl-9`}
+        />
+      </div>
 
       <div className="overflow-x-auto">
         <table className="w-full min-w-[760px] text-left text-sm">
@@ -191,7 +241,7 @@ function ProductsSection({ branchId }: { branchId: string }) {
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page <= 1}
-            className="rounded-lg border border-gray-200 px-3 py-1.5 disabled:opacity-40 dark:border-gray-600"
+            className="rounded-lg border border-gray-200 px-3 py-1.5 transition-colors duration-150 hover:border-brand hover:text-brand-dark disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-gray-200 disabled:hover:text-inherit dark:border-gray-600"
           >
             Anterior
           </button>
@@ -201,7 +251,7 @@ function ProductsSection({ branchId }: { branchId: string }) {
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page >= totalPages}
-            className="rounded-lg border border-gray-200 px-3 py-1.5 disabled:opacity-40 dark:border-gray-600"
+            className="rounded-lg border border-gray-200 px-3 py-1.5 transition-colors duration-150 hover:border-brand hover:text-brand-dark disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-gray-200 disabled:hover:text-inherit dark:border-gray-600"
           >
             Siguiente
           </button>
@@ -323,7 +373,7 @@ function ProductFormModal({ branchId, onClose }: { branchId: string; onClose: ()
                       key={match.id}
                       type="button"
                       onClick={() => handlePickMatch(match)}
-                      className="block w-full rounded-lg border border-gray-200 p-2 text-left text-sm transition-colors duration-150 hover:border-brand dark:border-gray-600"
+                      className="block w-full rounded-lg border border-gray-200 p-2 text-left text-sm shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:border-brand hover:shadow-md dark:border-gray-600"
                     >
                       <span className="font-medium">{match.name}</span>
                       {match.brandName && <span className="text-gray-400"> · {match.brandName}</span>}
@@ -470,7 +520,7 @@ function ProductFormModal({ branchId, onClose }: { branchId: string; onClose: ()
               (!usingExisting && (!form.name.trim() || !form.unitId)) ||
               !form.salePrice
             }
-            className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-brand-dark disabled:opacity-50"
+            className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-md disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none"
           >
             {createProduct.isPending ? 'Agregando…' : 'Agregar producto'}
           </button>
@@ -521,7 +571,7 @@ function ProductRow({ product, branchId }: { product: BusinessProduct; branchId:
 
   return (
     <>
-      <tr className="border-b border-gray-100 align-top dark:border-gray-700">
+      <tr className="border-b border-gray-100 align-top transition-colors duration-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-900/50">
         <td className="max-w-[180px] py-2 pr-3">
           <p className="truncate font-medium text-gray-700 dark:text-gray-200">{product.name}</p>
           {product.familyName && (
@@ -557,7 +607,10 @@ function ProductRow({ product, branchId }: { product: BusinessProduct; branchId:
           />
         </td>
         <td className="whitespace-nowrap py-2 pr-3">
-          <span className={lowStock ? 'font-semibold text-danger' : ''}>
+          <span
+            className={`inline-flex items-center gap-1 ${lowStock ? 'font-semibold text-danger' : ''}`}
+          >
+            {lowStock && <WarningIcon className="h-3.5 w-3.5" />}
             {product.stock} {product.unitName}
           </span>
           <button
@@ -578,7 +631,7 @@ function ProductRow({ product, branchId }: { product: BusinessProduct; branchId:
           <button
             onClick={handleSave}
             disabled={!dirty || updateProduct.isPending}
-            className="rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white transition-colors duration-150 hover:bg-brand-dark disabled:opacity-50"
+            className="rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-md disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none"
           >
             {updateProduct.isPending ? '…' : 'Guardar'}
           </button>
@@ -665,7 +718,7 @@ function AdjustStockModal({
           <button
             onClick={handleSubmit}
             disabled={adjustStock.isPending || !quantity}
-            className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-brand-dark disabled:opacity-50"
+            className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-md disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none"
           >
             {adjustStock.isPending ? 'Guardando…' : 'Registrar movimiento'}
           </button>
@@ -708,10 +761,13 @@ function ServicesSection() {
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-      <h2 className="mb-1 font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
-        Servicios
-      </h2>
+    <div className="animate-fade-in rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <div className="mb-1 flex items-center gap-2">
+        <SparklesIcon className="h-5 w-5 text-brand" />
+        <h2 className="font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
+          Servicios
+        </h2>
+      </div>
       <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
         Los servicios no manejan stock — solo precio y duración.
       </p>
@@ -754,7 +810,7 @@ function ServicesSection() {
         <button
           onClick={handleCreate}
           disabled={createService.isPending || !form.name.trim() || !form.price}
-          className="mt-3 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-brand-dark disabled:opacity-50"
+          className="mt-3 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-md disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none"
         >
           {createService.isPending ? 'Agregando…' : 'Agregar servicio'}
         </button>
@@ -800,7 +856,7 @@ function ServiceRow({ service }: { service: ServiceItem }) {
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+    <div className="rounded-lg border border-gray-200 p-3 transition-colors duration-150 hover:border-brand/40 dark:border-gray-700">
       <div className="grid gap-3 sm:grid-cols-4">
         <input
           value={form.name}
@@ -833,7 +889,7 @@ function ServiceRow({ service }: { service: ServiceItem }) {
           <button
             onClick={handleSave}
             disabled={!dirty || updateService.isPending}
-            className="ml-auto rounded-lg bg-brand px-3 py-1.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-brand-dark disabled:opacity-50"
+            className="ml-auto rounded-lg bg-brand px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-md disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none"
           >
             {updateService.isPending ? 'Guardando…' : 'Guardar'}
           </button>
