@@ -68,12 +68,20 @@ async function fetchServices(): Promise<CatalogItem[]> {
 }
 
 // Catálogo combinado (productos con stock de la sucursal activa + servicios,
-// que no tienen stock) para la pantalla de venta.
-export function usePosCatalog(branchId: string | null) {
+// que no tienen stock) para la pantalla de venta. Respeta los módulos
+// activos del negocio (Configuración > Módulos) — un negocio que apagó
+// "servicios" no debe verlos en el POS aunque queden filas viejas.
+export function usePosCatalog(
+  branchId: string | null,
+  modules: { inventario: boolean; servicios: boolean } = { inventario: true, servicios: true },
+) {
   return useQuery({
-    queryKey: ['pos-catalog', branchId],
+    queryKey: ['pos-catalog', branchId, modules.inventario, modules.servicios],
     queryFn: async (): Promise<CatalogItem[]> => {
-      const [products, services] = await Promise.all([fetchProducts(branchId!), fetchServices()])
+      const [products, services] = await Promise.all([
+        modules.inventario ? fetchProducts(branchId!) : Promise.resolve([]),
+        modules.servicios ? fetchServices() : Promise.resolve([]),
+      ])
       return [...products, ...services].sort((a, b) => a.name.localeCompare(b.name))
     },
     enabled: !!branchId,

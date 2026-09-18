@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { useBranding } from '../hooks/useBranding'
+import { useBusinessModules } from '../hooks/useBusinessModules'
 import { useLabels } from '../hooks/useLabels'
 import { useTheme } from '../theme/ThemeContext'
 import { useApplyBranding } from '../theme/useApplyBranding'
@@ -33,6 +34,7 @@ export default function AppLayout() {
   const { theme, toggleTheme } = useTheme()
   const labels = useLabels()
   const { data: branding } = useBranding()
+  const { data: modules } = useBusinessModules()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
   useApplyBranding()
@@ -57,9 +59,9 @@ export default function AppLayout() {
   const navItems = [
     { to: '/', end: true, label: labels.navDashboard },
     { to: '/pos', end: false, label: labels.navPos },
-    { to: '/caja', end: false, label: labels.navCaja },
+    ...(modules?.caja !== false ? [{ to: '/caja', end: false, label: labels.navCaja }] : []),
     { to: '/ventas', end: false, label: labels.navVentas },
-    ...(membership?.role === 'administrador' || membership?.role === 'gerente'
+    ...(modules?.inventario !== false && (membership?.role === 'administrador' || membership?.role === 'gerente')
       ? [{ to: '/inventario', end: false, label: 'Inventario' }]
       : []),
     ...(membership?.role === 'administrador' || membership?.role === 'gerente'

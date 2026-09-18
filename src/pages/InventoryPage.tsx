@@ -1,8 +1,9 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import BranchPicker from '../components/BranchPicker'
 import Modal from '../components/Modal'
 import ComboCreateSelect from '../components/ComboCreateSelect'
 import { useActiveBranch } from '../hooks/useActiveBranch'
+import { useBusinessModules } from '../hooks/useBusinessModules'
 import {
   useAdjustStock,
   useBrands,
@@ -32,7 +33,12 @@ const PAGE_SIZES = [10, 25, 50, 100]
 
 export default function InventoryPage() {
   const activeBranchId = useActiveBranch()
+  const { data: modules } = useBusinessModules()
   const [tab, setTab] = useState<'productos' | 'servicios'>('productos')
+
+  useEffect(() => {
+    if (modules?.servicios === false) setTab('productos')
+  }, [modules?.servicios])
 
   if (!activeBranchId) {
     return <BranchPicker title="Elige la sucursal para ver su inventario" />
@@ -40,14 +46,16 @@ export default function InventoryPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2">
-        <TabButton active={tab === 'productos'} onClick={() => setTab('productos')}>
-          Productos
-        </TabButton>
-        <TabButton active={tab === 'servicios'} onClick={() => setTab('servicios')}>
-          Servicios
-        </TabButton>
-      </div>
+      {modules?.servicios !== false && (
+        <div className="flex gap-2">
+          <TabButton active={tab === 'productos'} onClick={() => setTab('productos')}>
+            Productos
+          </TabButton>
+          <TabButton active={tab === 'servicios'} onClick={() => setTab('servicios')}>
+            Servicios
+          </TabButton>
+        </div>
+      )}
       {tab === 'productos' ? (
         <ProductsSection branchId={activeBranchId} />
       ) : (

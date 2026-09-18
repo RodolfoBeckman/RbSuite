@@ -4,6 +4,7 @@ import CatalogGrid from '../components/pos/CatalogGrid'
 import DepartmentTable from '../components/pos/DepartmentTable'
 import ScanTicket from '../components/pos/ScanTicket'
 import { useActiveBranch } from '../hooks/useActiveBranch'
+import { useBusinessModules } from '../hooks/useBusinessModules'
 import { usePosCatalog } from '../hooks/usePosCatalog'
 import { usePosLayout } from '../hooks/usePosLayout'
 import { useCreateSale } from '../hooks/useCreateSale'
@@ -67,11 +68,12 @@ export default function PosPage() {
   const activeBranchId = useActiveBranch()
   const labels = useLabels()
   const { data: posLayout = 'catalogo' } = usePosLayout()
+  const { data: modules } = useBusinessModules()
   const {
     data: catalog,
     isLoading: loadingCatalog,
     error: catalogError,
-  } = usePosCatalog(activeBranchId)
+  } = usePosCatalog(activeBranchId, modules)
 
   const [search, setSearch] = useState('')
   const [cart, setCart] = useState<Map<string, CartLine>>(new Map())

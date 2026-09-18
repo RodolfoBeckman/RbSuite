@@ -10,6 +10,7 @@ import {
   useUpdateBrandColor,
   useUploadLogo,
 } from '../hooks/useBranding'
+import { useBusinessModules, useUpdateBusinessModules, type BusinessModules } from '../hooks/useBusinessModules'
 import { useLabels, useUpdateLabels } from '../hooks/useLabels'
 import { usePosLayout, useUpdatePosLayout } from '../hooks/usePosLayout'
 import { usePublicPageSettings, useUpdatePublicPageSettings } from '../hooks/usePublicPageSettings'
@@ -47,6 +48,7 @@ const SETTINGS_NAV: { to: string; label: string; permission: PermissionAction | 
   { to: 'equipo', label: 'Equipo', permission: 'admin_only' },
   { to: 'etiquetas', label: 'Etiquetas', permission: 'manage_branding' },
   { to: 'punto-de-venta', label: 'Punto de venta', permission: 'manage_branding' },
+  { to: 'modulos', label: 'Módulos', permission: 'manage_branding' },
   { to: 'pagina-publica', label: 'Página pública', permission: 'manage_branding' },
   { to: 'auditoria', label: 'Auditoría', permission: 'view_audit_log' },
 ]
@@ -815,6 +817,93 @@ export function PosLayoutSection() {
             </p>
             <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{option.hint}</p>
           </button>
+        ))}
+      </div>
+
+      {feedback && (
+        <p className={`mt-3 text-sm ${feedback.type === 'success' ? 'text-success' : 'text-danger'}`}>
+          {feedback.text}
+        </p>
+      )}
+    </div>
+  )
+}
+
+const MODULE_OPTIONS: { key: keyof BusinessModules; label: string; hint: string }[] = [
+  {
+    key: 'caja',
+    label: 'Caja',
+    hint: 'Apertura/cierre de caja y control de efectivo. Desactívalo si tu negocio no maneja cortes de caja.',
+  },
+  {
+    key: 'inventario',
+    label: 'Inventario',
+    hint: 'Productos con stock por sucursal. Desactívalo si tu negocio vende solo servicios.',
+  },
+  {
+    key: 'servicios',
+    label: 'Servicios',
+    hint: 'Servicios sin stock (ej. cortes, consultas). Desactívalo si tu negocio vende solo productos.',
+  },
+]
+
+export function ModulesSection() {
+  const { data: modules, isLoading } = useBusinessModules()
+  const updateModules = useUpdateBusinessModules()
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(
+    null,
+  )
+
+  function handleToggle(key: keyof BusinessModules, checked: boolean) {
+    if (!modules) return
+    setFeedback(null)
+    updateModules.mutate(
+      { ...modules, [key]: checked },
+      {
+        onSuccess: () => setFeedback({ type: 'success', text: 'Módulos actualizados' }),
+        onError: (error) =>
+          setFeedback({
+            type: 'error',
+            text: error instanceof Error ? error.message : 'No se pudo guardar',
+          }),
+      },
+    )
+  }
+
+  if (isLoading || !modules) {
+    return <p className="text-sm text-gray-500 dark:text-gray-400">Cargando…</p>
+  }
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+      <h2 className="mb-1 font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
+        Módulos
+      </h2>
+      <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
+        Prende o apaga secciones enteras según cómo trabaja tu negocio. Se puede reactivar en
+        cualquier momento sin perder nada de lo ya capturado.
+      </p>
+
+      <div className="space-y-3">
+        {MODULE_OPTIONS.map((option) => (
+          <label
+            key={option.key}
+            className="flex items-start gap-3 rounded-lg border border-gray-200 p-3 dark:border-gray-600"
+          >
+            <input
+              type="checkbox"
+              checked={modules[option.key]}
+              onChange={(event) => handleToggle(option.key, event.target.checked)}
+              disabled={updateModules.isPending}
+              className="mt-0.5"
+            />
+            <span>
+              <span className="block text-sm font-semibold text-gray-800 dark:text-gray-100">
+                {option.label}
+              </span>
+              <span className="block text-xs text-gray-500 dark:text-gray-400">{option.hint}</span>
+            </span>
+          </label>
         ))}
       </div>
 

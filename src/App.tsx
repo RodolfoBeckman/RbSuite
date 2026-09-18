@@ -16,6 +16,7 @@ import SettingsPage, {
   TeamSection,
   LabelsSection,
   PosLayoutSection,
+  ModulesSection,
   PublicPageSection,
   AuditLogSection,
 } from './pages/SettingsPage'
@@ -31,9 +32,13 @@ export default function App() {
         <Route element={<AppLayout />}>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/pos" element={<PosPage />} />
-          <Route path="/caja" element={<CajaPage />} />
+          <Route element={<ProtectedRoute requiredModule="caja" />}>
+            <Route path="/caja" element={<CajaPage />} />
+          </Route>
           <Route path="/ventas" element={<SalesHistoryPage />} />
-          <Route element={<ProtectedRoute allowedRoles={['administrador', 'gerente']} />}>
+          <Route
+            element={<ProtectedRoute allowedRoles={['administrador', 'gerente']} requiredModule="inventario" />}
+          >
             <Route path="/inventario" element={<InventoryPage />} />
           </Route>
           <Route element={<ProtectedRoute allowedRoles={['administrador', 'gerente']} />}>
@@ -44,6 +49,7 @@ export default function App() {
               <Route path="equipo" element={<TeamSection />} />
               <Route path="etiquetas" element={<LabelsSection />} />
               <Route path="punto-de-venta" element={<PosLayoutSection />} />
+              <Route path="modulos" element={<ModulesSection />} />
               <Route path="pagina-publica" element={<PublicPageSection />} />
               <Route path="auditoria" element={<AuditLogSection />} />
             </Route>
