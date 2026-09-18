@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../auth/AuthContext'
+import { hasPermission } from '../auth/permissions'
 import { useCancelSale, useSalesHistory } from '../hooks/useSales'
 
 const currency = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' })
@@ -12,7 +13,7 @@ const dateTime = new Intl.DateTimeFormat('es-MX', {
 
 export default function SalesHistoryPage() {
   const { membership } = useAuth()
-  const canCancel = membership?.role === 'administrador' || membership?.role === 'gerente'
+  const canCancel = hasPermission(membership, 'cancel_sale')
 
   const { data: sales, isLoading, error } = useSalesHistory(7)
   const cancelSale = useCancelSale()

@@ -1,6 +1,16 @@
-// Los tres roles fijos del MVP (ver decisión de producto: sin pantalla de
-// permisos granulares todavía, eso queda para la fase P1).
+// Los tres roles fijos del MVP siguen igual — lo que agrega la fase P1 es
+// permission_overrides (ver src/auth/permissions.ts): excepciones por
+// persona sobre el default de su rol para un set fijo de acciones
+// sensibles, no un sistema de permisos libre.
 export type RoleName = 'administrador' | 'gerente' | 'vendedor'
+
+export type PermissionAction =
+  | 'create_products'
+  | 'edit_products'
+  | 'cancel_sale'
+  | 'manage_branches'
+  | 'manage_branding'
+  | 'view_audit_log'
 
 export interface Membership {
   businessId: string
@@ -9,6 +19,7 @@ export interface Membership {
   // sucursal (Vendedor).
   branchId: string | null
   role: RoleName
+  permissionOverrides: Partial<Record<PermissionAction, boolean>>
 }
 
 export interface Business {

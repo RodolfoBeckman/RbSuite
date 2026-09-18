@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../auth/AuthContext'
-import type { RoleName } from '../types'
+import type { PermissionAction, RoleName } from '../types'
 
 export interface TeamMember {
   userId: string
@@ -9,6 +9,7 @@ export interface TeamMember {
   role: RoleName
   branchId: string | null
   branchName: string | null
+  permissionOverrides: Partial<Record<PermissionAction, boolean>>
 }
 
 export function useTeamMembers() {
@@ -26,6 +27,8 @@ export function useTeamMembers() {
         role: row.role as RoleName,
         branchId: (row.branch_id as string | null) ?? null,
         branchName: (row.branch_name as string | null) ?? null,
+        permissionOverrides:
+          (row.permission_overrides as Partial<Record<PermissionAction, boolean>> | null) ?? {},
       }))
     },
     enabled: !!membership?.businessId,
@@ -88,11 +91,17 @@ export function useUpdateTeamMember() {
   const invalidate = useInvalidateTeam()
 
   return useMutation({
-    mutationFn: async (input: { userId: string; role: RoleName; branchId: string | null }) => {
+    mutationFn: async (input: {
+      userId: string
+      role: RoleName
+      branchId: string | null
+      permissionOverrides: Partial<Record<PermissionAction, boolean>>
+    }) => {
       const { error } = await supabase.rpc('update_team_member', {
         p_target_user_id: input.userId,
         p_role: input.role,
         p_branch_id: input.branchId,
+        p_permission_overrides: input.permissionOverrides,
       })
       if (error) throw error
     },

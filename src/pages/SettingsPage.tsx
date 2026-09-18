@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { Navigate, NavLink, Outlet } from 'react-router-dom'
 import LogoUploader from '../components/LogoUploader'
+import { useAuth } from '../auth/AuthContext'
+import { hasPermission, PERMISSION_LABELS } from '../auth/permissions'
 import { useAuditLogs } from '../hooks/useAuditLogs'
 import {
   DEFAULT_PRIMARY_COLOR,
@@ -26,7 +28,7 @@ import {
   type TeamMember,
 } from '../hooks/useTeam'
 import type { Labels } from '../labels/defaultLabels'
-import type { PosLayout, RoleName } from '../types'
+import type { PermissionAction, PosLayout, RoleName } from '../types'
 
 const LABEL_FIELDS: { key: keyof Labels; hint: string }[] = [
   { key: 'navDashboard', hint: 'Menú — Dashboard' },
@@ -36,21 +38,40 @@ const LABEL_FIELDS: { key: keyof Labels; hint: string }[] = [
   { key: 'posTitle', hint: 'Título dentro del punto de venta' },
 ]
 
-const SETTINGS_NAV = [
-  { to: 'marca', label: 'Marca' },
-  { to: 'sucursales', label: 'Sucursales' },
-  { to: 'equipo', label: 'Equipo' },
-  { to: 'etiquetas', label: 'Etiquetas' },
-  { to: 'punto-de-venta', label: 'Punto de venta' },
-  { to: 'pagina-publica', label: 'Página pública' },
-  { to: 'auditoria', label: 'Auditoría' },
+// "admin_only" no es un PermissionAction overridable a propósito — invitar
+// o quitar gente del equipo se queda como acción exclusiva del
+// Administrador (ver nota en 0018_granular_permissions.sql).
+const SETTINGS_NAV: { to: string; label: string; permission: PermissionAction | 'admin_only' }[] = [
+  { to: 'marca', label: 'Marca', permission: 'manage_branding' },
+  { to: 'sucursales', label: 'Sucursales', permission: 'manage_branches' },
+  { to: 'equipo', label: 'Equipo', permission: 'admin_only' },
+  { to: 'etiquetas', label: 'Etiquetas', permission: 'manage_branding' },
+  { to: 'punto-de-venta', label: 'Punto de venta', permission: 'manage_branding' },
+  { to: 'pagina-publica', label: 'Página pública', permission: 'manage_branding' },
+  { to: 'auditoria', label: 'Auditoría', permission: 'view_audit_log' },
 ]
 
+function useVisibleSettingsNav() {
+  const { membership } = useAuth()
+  return SETTINGS_NAV.filter((item) =>
+    item.permission === 'admin_only'
+      ? membership?.role === 'administrador'
+      : hasPermission(membership, item.permission),
+  )
+}
+
+export function SettingsIndexRedirect() {
+  const visibleNav = useVisibleSettingsNav()
+  return <Navigate to={visibleNav[0]?.to ?? 'marca'} replace />
+}
+
 export default function SettingsPage() {
+  const visibleNav = useVisibleSettingsNav()
+
   return (
     <div className="flex flex-col gap-6 md:flex-row md:items-start">
       <nav className="flex gap-2 overflow-x-auto md:w-48 md:flex-none md:flex-col md:gap-1">
-        {SETTINGS_NAV.map((item) => (
+        {visibleNav.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
@@ -67,7 +88,11 @@ export default function SettingsPage() {
         ))}
       </nav>
       <div className="max-w-2xl flex-1">
-        <Outlet />
+        {visibleNav.length === 0 ? (
+          <p className="text-sm text-gray-400">No tienes acceso a ninguna sección de Configuración.</p>
+        ) : (
+          <Outlet />
+        )}
       </div>
     </div>
   )
@@ -300,13 +325,28 @@ function TeamMemberRow({
   const updateMember = useUpdateTeamMember()
   const removeMember = useRemoveTeamMember()
 
-  const [form, setForm] = useState<{ role: RoleName; branchId: string }>({
+  const [form, setForm] = useState<{
+    role: RoleName
+    branchId: string
+    permissionOverrides: Partial<Record<PermissionAction, boolean>>
+  }>({
     role: member.role,
     branchId: member.branchId ?? '',
+    permissionOverrides: member.permissionOverrides,
   })
   const [feedback, setFeedback] = useState<'success' | 'error' | null>(null)
 
-  const dirty = form.role !== member.role || form.branchId !== (member.branchId ?? '')
+  const dirty =
+    form.role !== member.role ||
+    form.branchId !== (member.branchId ?? '') ||
+    JSON.stringify(form.permissionOverrides) !== JSON.stringify(member.permissionOverrides)
+
+  function togglePermission(action: PermissionAction, checked: boolean) {
+    setForm((prev) => ({
+      ...prev,
+      permissionOverrides: { ...prev.permissionOverrides, [action]: checked },
+    }))
+  }
 
   function handleSave() {
     if (form.role === 'vendedor' && !form.branchId) {
@@ -319,6 +359,7 @@ function TeamMemberRow({
         userId: member.userId,
         role: form.role,
         branchId: form.role === 'vendedor' ? form.branchId : null,
+        permissionOverrides: form.permissionOverrides,
       },
       {
         onSuccess: () => setFeedback('success'),
@@ -383,6 +424,33 @@ function TeamMemberRow({
           </button>
         </div>
       </div>
+
+      {form.role !== 'administrador' && (
+        <div className="mt-3 border-t border-gray-100 pt-3 dark:border-gray-700">
+          <p className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">
+            Permisos adicionales (sobre lo que ya puede su rol)
+          </p>
+          <div className="grid gap-x-4 gap-y-1.5 sm:grid-cols-2">
+            {PERMISSION_LABELS.map((permission) => (
+              <label
+                key={permission.value}
+                className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300"
+              >
+                <input
+                  type="checkbox"
+                  checked={hasPermission(
+                    { role: form.role, permissionOverrides: form.permissionOverrides },
+                    permission.value,
+                  )}
+                  onChange={(event) => togglePermission(permission.value, event.target.checked)}
+                />
+                {permission.label}
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
       {feedback === 'success' && <p className="mt-2 text-sm text-success">Guardado</p>}
       {feedback === 'error' && <p className="mt-2 text-sm text-danger">Error al guardar</p>}
     </div>

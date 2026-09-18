@@ -62,7 +62,7 @@ export default function AppLayout() {
     ...(membership?.role === 'administrador' || membership?.role === 'gerente'
       ? [{ to: '/inventario', end: false, label: 'Inventario' }]
       : []),
-    ...(membership?.role === 'administrador'
+    ...(membership?.role === 'administrador' || membership?.role === 'gerente'
       ? [{ to: '/configuracion', end: false, label: 'Configuración' }]
       : []),
   ]

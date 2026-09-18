@@ -54,6 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           businessId: row.business_id,
           branchId: row.branch_id,
           role: row.role,
+          permissionOverrides: row.permission_overrides ?? {},
         }
         setMembership(resolved)
         setActiveBranchId(resolved.branchId)
