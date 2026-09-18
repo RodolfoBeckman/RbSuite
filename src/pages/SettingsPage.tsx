@@ -31,6 +31,83 @@ import {
 import type { Labels } from '../labels/defaultLabels'
 import type { PermissionAction, PosLayout, RoleName } from '../types'
 
+function PaintIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3a9 9 0 1 0 0 18c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.2 0-.9.7-1.5 1.5-1.5H16a4 4 0 0 0 4-4c0-4.4-3.6-8-8-8Z" />
+      <circle cx="7.5" cy="10.5" r="1" fill="currentColor" />
+      <circle cx="11" cy="7.5" r="1" fill="currentColor" />
+      <circle cx="15" cy="8.5" r="1" fill="currentColor" />
+    </svg>
+  )
+}
+
+function MapPinIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1 1 16 0Z" />
+      <circle cx="12" cy="10" r="3" />
+    </svg>
+  )
+}
+
+function UsersIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
+      <circle cx="9" cy="8" r="3" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 8a3 3 0 1 1 0 6M22 20c0-2.8-2-5.1-4.7-5.8" />
+    </svg>
+  )
+}
+
+function TagIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 2 3 11l10 11 9-9V2h-10Z" />
+      <circle cx="16.5" cy="6.5" r="1.2" fill="currentColor" />
+    </svg>
+  )
+}
+
+function CashRegisterIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
+      <rect x="3" y="7" width="18" height="13" rx="2" />
+      <path strokeLinecap="round" d="M8 7V5a4 4 0 0 1 8 0v2" />
+      <circle cx="12" cy="13.5" r="2" />
+    </svg>
+  )
+}
+
+function GridIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
+      <rect x="3" y="3" width="8" height="8" rx="1.5" />
+      <rect x="13" y="3" width="8" height="8" rx="1.5" />
+      <rect x="3" y="13" width="8" height="8" rx="1.5" />
+      <rect x="13" y="13" width="8" height="8" rx="1.5" />
+    </svg>
+  )
+}
+
+function GlobeIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
+      <circle cx="12" cy="12" r="9" />
+      <path strokeLinecap="round" d="M3 12h18M12 3c2.5 2.5 4 5.7 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.7-4-9s1.5-6.5 4-9Z" />
+    </svg>
+  )
+}
+
+function ShieldIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l7 3v6c0 4.5-3 7.7-7 9-4-1.3-7-4.5-7-9V6l7-3Z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="m9.5 12 2 2 3.5-4" />
+    </svg>
+  )
+}
+
 const LABEL_FIELDS: { key: keyof Labels; hint: string }[] = [
   { key: 'navDashboard', hint: 'Menú — Dashboard' },
   { key: 'navPos', hint: 'Menú — Punto de venta' },
@@ -42,15 +119,20 @@ const LABEL_FIELDS: { key: keyof Labels; hint: string }[] = [
 // "admin_only" no es un PermissionAction overridable a propósito — invitar
 // o quitar gente del equipo se queda como acción exclusiva del
 // Administrador (ver nota en 0018_granular_permissions.sql).
-const SETTINGS_NAV: { to: string; label: string; permission: PermissionAction | 'admin_only' }[] = [
-  { to: 'marca', label: 'Marca', permission: 'manage_branding' },
-  { to: 'sucursales', label: 'Sucursales', permission: 'manage_branches' },
-  { to: 'equipo', label: 'Equipo', permission: 'admin_only' },
-  { to: 'etiquetas', label: 'Etiquetas', permission: 'manage_branding' },
-  { to: 'punto-de-venta', label: 'Punto de venta', permission: 'manage_branding' },
-  { to: 'modulos', label: 'Módulos', permission: 'manage_branding' },
-  { to: 'pagina-publica', label: 'Página pública', permission: 'manage_branding' },
-  { to: 'auditoria', label: 'Auditoría', permission: 'view_audit_log' },
+const SETTINGS_NAV: {
+  to: string
+  label: string
+  permission: PermissionAction | 'admin_only'
+  icon: typeof PaintIcon
+}[] = [
+  { to: 'marca', label: 'Marca', permission: 'manage_branding', icon: PaintIcon },
+  { to: 'sucursales', label: 'Sucursales', permission: 'manage_branches', icon: MapPinIcon },
+  { to: 'equipo', label: 'Equipo', permission: 'admin_only', icon: UsersIcon },
+  { to: 'etiquetas', label: 'Etiquetas', permission: 'manage_branding', icon: TagIcon },
+  { to: 'punto-de-venta', label: 'Punto de venta', permission: 'manage_branding', icon: CashRegisterIcon },
+  { to: 'modulos', label: 'Módulos', permission: 'manage_branding', icon: GridIcon },
+  { to: 'pagina-publica', label: 'Página pública', permission: 'manage_branding', icon: GlobeIcon },
+  { to: 'auditoria', label: 'Auditoría', permission: 'view_audit_log', icon: ShieldIcon },
 ]
 
 function useVisibleSettingsNav() {
@@ -78,13 +160,14 @@ export default function SettingsPage() {
             key={item.to}
             to={item.to}
             className={({ isActive }) =>
-              `whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+              `flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold transition-colors duration-150 ${
                 isActive
                   ? 'bg-brand-tint text-brand-dark dark:bg-brand/20 dark:text-brand-light'
                   : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'
               }`
             }
           >
+            <item.icon className="h-4 w-4 shrink-0" />
             {item.label}
           </NavLink>
         ))}
@@ -143,10 +226,13 @@ export function BrandingSection() {
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-        <h2 className="mb-1 font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
-          Marca de tu negocio
-        </h2>
+    <div className="animate-fade-in rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <div className="mb-1 flex items-center gap-2">
+          <PaintIcon className="h-5 w-5 text-brand" />
+          <h2 className="font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
+            Marca de tu negocio
+          </h2>
+        </div>
         <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
           El logo y el color se usan en el encabezado y los acentos de toda la app.
         </p>
@@ -174,7 +260,7 @@ export function BrandingSection() {
           <button
             onClick={handleSaveColor}
             disabled={updateColor.isPending}
-            className="ml-auto rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-brand-dark disabled:opacity-50"
+            className="ml-auto rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-md disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none"
           >
             {updateColor.isPending ? 'Guardando…' : 'Guardar'}
           </button>
@@ -239,10 +325,13 @@ export function TeamSection() {
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-      <h2 className="mb-1 font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
-        Equipo
-      </h2>
+    <div className="animate-fade-in rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <div className="mb-1 flex items-center gap-2">
+        <UsersIcon className="h-5 w-5 text-brand" />
+        <h2 className="font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
+          Equipo
+        </h2>
+      </div>
       <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
         Invita a tu equipo y asigna su rol y sucursal. Administrador y Gerente ven todas las
         sucursales; un Vendedor queda restringido a la suya.
@@ -302,7 +391,7 @@ export function TeamSection() {
         <button
           onClick={handleInvite}
           disabled={inviteMember.isPending || !invite.email.trim()}
-          className="mt-3 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-brand-dark disabled:opacity-50"
+          className="mt-3 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-md disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none"
         >
           {inviteMember.isPending ? 'Enviando…' : 'Enviar invitación'}
         </button>
@@ -376,7 +465,7 @@ function TeamMemberRow({
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+    <div className="rounded-lg border border-gray-200 p-3 transition-colors duration-150 hover:border-brand/40 dark:border-gray-700">
       <p className="mb-2 truncate text-sm font-medium text-gray-700 dark:text-gray-200">
         {member.email}
       </p>
@@ -413,7 +502,7 @@ function TeamMemberRow({
           <button
             onClick={handleSave}
             disabled={!dirty || updateMember.isPending}
-            className="rounded-lg bg-brand px-3 py-1.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-brand-dark disabled:opacity-50"
+            className="rounded-lg bg-brand px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-md disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none"
           >
             {updateMember.isPending ? 'Guardando…' : 'Guardar'}
           </button>
@@ -498,10 +587,13 @@ export function BranchesSection() {
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-      <h2 className="mb-1 font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
-        Sucursales
-      </h2>
+    <div className="animate-fade-in rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <div className="mb-1 flex items-center gap-2">
+        <MapPinIcon className="h-5 w-5 text-brand" />
+        <h2 className="font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
+          Sucursales
+        </h2>
+      </div>
       <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
         Da de alta y edita las sucursales de tu negocio. Desactivar una sucursal la oculta del
         punto de venta sin borrar su historial.
@@ -569,7 +661,7 @@ export function BranchesSection() {
         <button
           onClick={handleCreate}
           disabled={createBranch.isPending || !newBranch.name.trim()}
-          className="mt-3 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-brand-dark disabled:opacity-50"
+          className="mt-3 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-md disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none"
         >
           {createBranch.isPending ? 'Creando…' : 'Agregar sucursal'}
         </button>
@@ -616,7 +708,7 @@ function BranchRow({ branch }: { branch: BranchDetail }) {
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+    <div className="rounded-lg border border-gray-200 p-3 transition-colors duration-150 hover:border-brand/40 dark:border-gray-700">
       <div className="grid gap-3 sm:grid-cols-3">
         <input
           type="text"
@@ -669,7 +761,7 @@ function BranchRow({ branch }: { branch: BranchDetail }) {
         <button
           onClick={handleSave}
           disabled={!dirty || updateBranch.isPending}
-          className="ml-auto rounded-lg bg-brand px-3 py-1.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-brand-dark disabled:opacity-50"
+          className="ml-auto rounded-lg bg-brand px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-md disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none"
         >
           {updateBranch.isPending ? 'Guardando…' : 'Guardar'}
         </button>
@@ -709,10 +801,13 @@ export function LabelsSection() {
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-      <h2 className="mb-1 font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
-        Textos de la interfaz
-      </h2>
+    <div className="animate-fade-in rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <div className="mb-1 flex items-center gap-2">
+        <TagIcon className="h-5 w-5 text-brand" />
+        <h2 className="font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
+          Textos de la interfaz
+        </h2>
+      </div>
       <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
         Personaliza los nombres que ve tu equipo — por ejemplo, si no manejas servicios, puedes
         quitar esa palabra del menú de ventas.
@@ -735,7 +830,7 @@ export function LabelsSection() {
       <button
         onClick={handleSave}
         disabled={updateLabels.isPending}
-        className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-brand-dark disabled:opacity-50"
+        className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-md disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none"
       >
         {updateLabels.isPending ? 'Guardando…' : 'Guardar textos'}
       </button>
@@ -792,10 +887,13 @@ export function PosLayoutSection() {
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-      <h2 className="mb-1 font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
-        Punto de venta
-      </h2>
+    <div className="animate-fade-in rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <div className="mb-1 flex items-center gap-2">
+        <CashRegisterIcon className="h-5 w-5 text-brand" />
+        <h2 className="font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
+          Punto de venta
+        </h2>
+      </div>
       <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
         Elige el diseño de la pantalla de venta según cómo trabaja tu negocio.
       </p>
@@ -875,10 +973,13 @@ export function ModulesSection() {
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-      <h2 className="mb-1 font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
-        Módulos
-      </h2>
+    <div className="animate-fade-in rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <div className="mb-1 flex items-center gap-2">
+        <GridIcon className="h-5 w-5 text-brand" />
+        <h2 className="font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
+          Módulos
+        </h2>
+      </div>
       <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
         Prende o apaga secciones enteras según cómo trabaja tu negocio. Se puede reactivar en
         cualquier momento sin perder nada de lo ya capturado.
@@ -888,7 +989,7 @@ export function ModulesSection() {
         {MODULE_OPTIONS.map((option) => (
           <label
             key={option.key}
-            className="flex items-start gap-3 rounded-lg border border-gray-200 p-3 dark:border-gray-600"
+            className="flex items-start gap-3 rounded-lg border border-gray-200 p-3 transition-colors duration-150 hover:border-brand/40 dark:border-gray-600"
           >
             <input
               type="checkbox"
@@ -961,10 +1062,13 @@ export function PublicPageSection() {
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-      <h2 className="mb-1 font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
-        Página pública
-      </h2>
+    <div className="animate-fade-in rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <div className="mb-1 flex items-center gap-2">
+        <GlobeIcon className="h-5 w-5 text-brand" />
+        <h2 className="font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
+          Página pública
+        </h2>
+      </div>
       <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
         Una página visible para cualquiera, con tus servicios, sucursales y un botón de contacto
         por WhatsApp. Usa el logo y color de marca que ya configuraste.
@@ -1014,7 +1118,7 @@ export function PublicPageSection() {
       <button
         onClick={handleSave}
         disabled={updateSettings.isPending}
-        className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-brand-dark disabled:opacity-50"
+        className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-md disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none"
       >
         {updateSettings.isPending ? 'Guardando…' : 'Guardar'}
       </button>
@@ -1093,10 +1197,13 @@ export function AuditLogSection() {
   })
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-      <h2 className="mb-1 font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
-        Auditoría
-      </h2>
+    <div className="animate-fade-in rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <div className="mb-1 flex items-center gap-2">
+        <ShieldIcon className="h-5 w-5 text-brand" />
+        <h2 className="font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
+          Auditoría
+        </h2>
+      </div>
       <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
         Quién hizo qué en acciones sensibles: cancelar ventas, cambiar precios, ajustar
         inventario, retiros de caja, y cambios al equipo.
@@ -1139,7 +1246,7 @@ export function AuditLogSection() {
           return (
             <div
               key={entry.id}
-              className="rounded-lg border border-gray-200 p-3 text-sm dark:border-gray-700"
+              className="rounded-lg border border-gray-200 p-3 text-sm transition-colors duration-150 hover:border-brand/40 dark:border-gray-700"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="font-medium text-gray-700 dark:text-gray-200">
