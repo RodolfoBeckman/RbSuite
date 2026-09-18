@@ -5,13 +5,18 @@ import type { CatalogItem } from '../types'
 interface BusinessProductRow {
   id: string
   sale_price: number
-  product: { name: string } | { name: string }[] | null
+  product: { name: string; barcode: string | null } | { name: string; barcode: string | null }[] | null
+  category: { name: string } | { name: string }[] | null
+}
+
+function one<T>(value: T | T[] | null): T | null {
+  return Array.isArray(value) ? (value[0] ?? null) : value
 }
 
 async function fetchProducts(branchId: string): Promise<CatalogItem[]> {
   const { data: businessProducts, error } = await supabase
     .from('business_products')
-    .select('id, sale_price, product:products_catalog(name)')
+    .select('id, sale_price, product:products_catalog(name, barcode), category:categories(name)')
     .eq('active', true)
     .returns<BusinessProductRow[]>()
 
@@ -29,13 +34,16 @@ async function fetchProducts(branchId: string): Promise<CatalogItem[]> {
   )
 
   return (businessProducts ?? []).map((row) => {
-    const product = Array.isArray(row.product) ? row.product[0] : row.product
+    const product = one(row.product)
+    const category = one(row.category)
     return {
       itemType: 'product',
       id: row.id,
       name: product?.name ?? 'Producto sin nombre',
       price: Number(row.sale_price),
       stock: stockByProduct.get(row.id) ?? 0,
+      barcode: product?.barcode ?? null,
+      categoryName: category?.name ?? null,
     }
   })
 }
@@ -54,6 +62,8 @@ async function fetchServices(): Promise<CatalogItem[]> {
     name: row.name,
     price: Number(row.price),
     stock: null,
+    barcode: null,
+    categoryName: 'Servicios',
   }))
 }
 

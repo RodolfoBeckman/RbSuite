@@ -32,7 +32,15 @@ export interface CatalogItem {
   name: string
   price: number
   stock: number | null
+  barcode: string | null
+  categoryName: string | null
 }
+
+// Layouts de venta por giro de negocio (businesses.pos_layout). "catalogo"
+// es el default (tarjetas visuales, ideal para pocos SKUs y servicios);
+// "ferreteria" agrupa por departamento en una tabla densa; "abarrotes"
+// prioriza escanear/teclear un código sobre buscar visualmente.
+export type PosLayout = 'catalogo' | 'ferreteria' | 'abarrotes'
 
 export interface CartLine {
   item: CatalogItem

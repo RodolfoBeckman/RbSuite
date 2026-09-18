@@ -9,6 +9,7 @@ import {
   useUploadLogo,
 } from '../hooks/useBranding'
 import { useLabels, useUpdateLabels } from '../hooks/useLabels'
+import { usePosLayout, useUpdatePosLayout } from '../hooks/usePosLayout'
 import { usePublicPageSettings, useUpdatePublicPageSettings } from '../hooks/usePublicPageSettings'
 import {
   useBranches,
@@ -25,7 +26,7 @@ import {
   type TeamMember,
 } from '../hooks/useTeam'
 import type { Labels } from '../labels/defaultLabels'
-import type { RoleName } from '../types'
+import type { PosLayout, RoleName } from '../types'
 
 const LABEL_FIELDS: { key: keyof Labels; hint: string }[] = [
   { key: 'navDashboard', hint: 'Menú — Dashboard' },
@@ -40,6 +41,7 @@ const SETTINGS_NAV = [
   { to: 'sucursales', label: 'Sucursales' },
   { to: 'equipo', label: 'Equipo' },
   { to: 'etiquetas', label: 'Etiquetas' },
+  { to: 'punto-de-venta', label: 'Punto de venta' },
   { to: 'pagina-publica', label: 'Página pública' },
   { to: 'auditoria', label: 'Auditoría' },
 ]
@@ -667,6 +669,86 @@ export function LabelsSection() {
       >
         {updateLabels.isPending ? 'Guardando…' : 'Guardar textos'}
       </button>
+
+      {feedback && (
+        <p className={`mt-3 text-sm ${feedback.type === 'success' ? 'text-success' : 'text-danger'}`}>
+          {feedback.text}
+        </p>
+      )}
+    </div>
+  )
+}
+
+const POS_LAYOUT_OPTIONS: { value: PosLayout; label: string; hint: string }[] = [
+  {
+    value: 'catalogo',
+    label: 'Catálogo',
+    hint: 'Tarjetas visuales. Ideal para salones, boutiques y negocios con pocos productos y servicios.',
+  },
+  {
+    value: 'ferreteria',
+    label: 'Ferretería',
+    hint: 'Tabla densa agrupada por departamento. Ideal para catálogos grandes organizados por categoría.',
+  },
+  {
+    value: 'abarrotes',
+    label: 'Abarrotes',
+    hint: 'Prioriza escanear o teclear el código de barras, con el total siempre visible en grande.',
+  },
+]
+
+export function PosLayoutSection() {
+  const { data: posLayout, isLoading } = usePosLayout()
+  const updatePosLayout = useUpdatePosLayout()
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(
+    null,
+  )
+
+  function handleSelect(value: PosLayout) {
+    if (value === posLayout) return
+    setFeedback(null)
+    updatePosLayout.mutate(value, {
+      onSuccess: () => setFeedback({ type: 'success', text: 'Diseño de venta actualizado' }),
+      onError: (error) =>
+        setFeedback({
+          type: 'error',
+          text: error instanceof Error ? error.message : 'No se pudo guardar',
+        }),
+    })
+  }
+
+  if (isLoading) {
+    return <p className="text-sm text-gray-500 dark:text-gray-400">Cargando…</p>
+  }
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+      <h2 className="mb-1 font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
+        Punto de venta
+      </h2>
+      <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
+        Elige el diseño de la pantalla de venta según cómo trabaja tu negocio.
+      </p>
+
+      <div className="space-y-2">
+        {POS_LAYOUT_OPTIONS.map((option) => (
+          <button
+            key={option.value}
+            onClick={() => handleSelect(option.value)}
+            disabled={updatePosLayout.isPending}
+            className={`w-full rounded-lg border p-3 text-left transition-colors duration-150 disabled:opacity-50 ${
+              posLayout === option.value
+                ? 'border-brand bg-brand-tint dark:bg-brand/20'
+                : 'border-gray-200 hover:border-brand dark:border-gray-600'
+            }`}
+          >
+            <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">
+              {option.label}
+            </p>
+            <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{option.hint}</p>
+          </button>
+        ))}
+      </div>
 
       {feedback && (
         <p className={`mt-3 text-sm ${feedback.type === 'success' ? 'text-success' : 'text-danger'}`}>

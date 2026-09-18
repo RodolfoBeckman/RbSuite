@@ -14,6 +14,7 @@ import SettingsPage, {
   BranchesSection,
   TeamSection,
   LabelsSection,
+  PosLayoutSection,
   PublicPageSection,
   AuditLogSection,
 } from './pages/SettingsPage'
@@ -41,6 +42,7 @@ export default function App() {
               <Route path="sucursales" element={<BranchesSection />} />
               <Route path="equipo" element={<TeamSection />} />
               <Route path="etiquetas" element={<LabelsSection />} />
+              <Route path="punto-de-venta" element={<PosLayoutSection />} />
               <Route path="pagina-publica" element={<PublicPageSection />} />
               <Route path="auditoria" element={<AuditLogSection />} />
             </Route>

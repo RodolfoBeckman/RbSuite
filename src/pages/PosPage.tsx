@@ -1,7 +1,11 @@
 import { useMemo, useState } from 'react'
 import BranchPicker from '../components/BranchPicker'
+import CatalogGrid from '../components/pos/CatalogGrid'
+import DepartmentTable from '../components/pos/DepartmentTable'
+import ScanTicket from '../components/pos/ScanTicket'
 import { useActiveBranch } from '../hooks/useActiveBranch'
 import { usePosCatalog } from '../hooks/usePosCatalog'
+import { usePosLayout } from '../hooks/usePosLayout'
 import { useCreateSale } from '../hooks/useCreateSale'
 import { useLabels } from '../hooks/useLabels'
 import type { CartLine, CatalogItem, PaymentMethod } from '../types'
@@ -17,6 +21,7 @@ const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
 export default function PosPage() {
   const activeBranchId = useActiveBranch()
   const labels = useLabels()
+  const { data: posLayout = 'catalogo' } = usePosLayout()
   const {
     data: catalog,
     isLoading: loadingCatalog,
@@ -100,13 +105,15 @@ export default function PosPage() {
           <h2 className="font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
             {labels.posTitle}
           </h2>
-          <input
-            type="search"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Buscar producto o servicio…"
-            className="w-64 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm focus:border-brand focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
-          />
+          {posLayout !== 'abarrotes' && (
+            <input
+              type="search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Buscar producto o servicio…"
+              className="w-64 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm focus:border-brand focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+            />
+          )}
         </div>
 
         {loadingCatalog && (
@@ -116,29 +123,21 @@ export default function PosPage() {
           <p className="text-sm text-danger">No se pudo cargar el catálogo. Intenta de nuevo.</p>
         )}
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {filteredCatalog.map((item) => (
-            <button
-              key={`${item.itemType}-${item.id}`}
-              onClick={() => addToCart(item)}
-              disabled={item.itemType === 'product' && (item.stock ?? 0) <= 0}
-              className="flex flex-col items-start gap-1 rounded-lg border border-gray-200 p-3 text-left transition hover:border-brand hover:bg-brand-tint disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:hover:bg-brand/20"
-            >
-              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                {item.name}
-              </span>
-              <span className="text-sm font-semibold text-brand-dark dark:text-brand-light">
-                {currency.format(item.price)}
-              </span>
-              {item.itemType === 'product' && (
-                <span className="text-xs text-gray-400">Stock: {item.stock}</span>
-              )}
-            </button>
-          ))}
-          {!loadingCatalog && filteredCatalog.length === 0 && (
-            <p className="col-span-full text-sm text-gray-400">Sin resultados.</p>
-          )}
-        </div>
+        {posLayout === 'ferreteria' && (
+          <DepartmentTable items={filteredCatalog} loading={loadingCatalog} onAdd={addToCart} />
+        )}
+        {posLayout === 'abarrotes' && (
+          <ScanTicket
+            items={filteredCatalog}
+            search={search}
+            setSearch={setSearch}
+            onAdd={addToCart}
+            total={total}
+          />
+        )}
+        {posLayout === 'catalogo' && (
+          <CatalogGrid items={filteredCatalog} loading={loadingCatalog} onAdd={addToCart} />
+        )}
       </div>
 
       <div
