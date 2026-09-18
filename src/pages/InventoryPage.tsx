@@ -857,26 +857,28 @@ function ServiceRow({ service }: { service: ServiceItem }) {
 
   return (
     <div className="rounded-lg border border-gray-200 p-3 transition-colors duration-150 hover:border-brand/40 dark:border-gray-700">
-      <div className="grid gap-3 sm:grid-cols-4">
+      <div className="space-y-2">
         <input
           value={form.name}
           onChange={(event) => setForm((p) => ({ ...p, name: event.target.value }))}
-          className={inputClass}
+          className={`${inputClass} w-full`}
         />
-        <input
-          type="number"
-          step="0.01"
-          value={form.price}
-          onChange={(event) => setForm((p) => ({ ...p, price: event.target.value }))}
-          className={inputClass}
-        />
-        <input
-          type="number"
-          value={form.durationMinutes}
-          onChange={(event) => setForm((p) => ({ ...p, durationMinutes: event.target.value }))}
-          className={inputClass}
-          placeholder="min"
-        />
+        <div className="grid grid-cols-2 gap-2">
+          <input
+            type="number"
+            step="0.01"
+            value={form.price}
+            onChange={(event) => setForm((p) => ({ ...p, price: event.target.value }))}
+            className={inputClass}
+          />
+          <input
+            type="number"
+            value={form.durationMinutes}
+            onChange={(event) => setForm((p) => ({ ...p, durationMinutes: event.target.value }))}
+            className={inputClass}
+            placeholder="min"
+          />
+        </div>
         <div className="flex items-center gap-2">
           <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
             <input
