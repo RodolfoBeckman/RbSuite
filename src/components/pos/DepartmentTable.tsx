@@ -10,10 +10,12 @@ export default function DepartmentTable({
   items,
   loading,
   onAdd,
+  cartQuantities,
 }: {
   items: CatalogItem[]
   loading: boolean
   onAdd: (item: CatalogItem) => void
+  cartQuantities: Map<string, number>
 }) {
   const groups = useMemo(() => {
     const byDept = new Map<string, CatalogItem[]>()
@@ -27,38 +29,50 @@ export default function DepartmentTable({
   }, [items])
 
   return (
-    <div className="divide-y divide-gray-100 dark:divide-gray-700">
+    <div className="space-y-4">
       {groups.map(([dept, deptItems]) => (
-        <div key={dept}>
-          <p className="sticky top-0 z-10 bg-gray-50 px-1 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:bg-gray-800">
+        <div
+          key={dept}
+          className="animate-fade-in overflow-hidden rounded-xl border border-gray-200 shadow-sm dark:border-gray-700"
+        >
+          <p className="bg-brand-tint px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-brand-dark dark:bg-brand/20 dark:text-brand-light">
             {dept}
           </p>
           <table className="w-full text-sm">
             <tbody>
-              {deptItems.map((item) => (
-                <tr
-                  key={`${item.itemType}-${item.id}`}
-                  onClick={() => {
-                    if (item.itemType === 'product' && (item.stock ?? 0) <= 0) return
-                    onAdd(item)
-                  }}
-                  className={`cursor-pointer border-b border-gray-50 transition-colors duration-100 hover:bg-brand-tint dark:border-gray-800 dark:hover:bg-brand/20 ${
-                    item.itemType === 'product' && (item.stock ?? 0) <= 0
-                      ? 'cursor-not-allowed opacity-40'
-                      : ''
-                  }`}
-                >
-                  <td className="py-2 pl-1 font-medium text-gray-800 dark:text-gray-100">
-                    {item.name}
-                  </td>
-                  <td className="py-2 pr-2 text-right text-xs text-gray-400">
-                    {item.itemType === 'product' ? `Stock: ${item.stock}` : ''}
-                  </td>
-                  <td className="py-2 pr-1 text-right font-semibold text-brand-dark dark:text-brand-light">
-                    {currency.format(item.price)}
-                  </td>
-                </tr>
-              ))}
+              {deptItems.map((item) => {
+                const inCart = cartQuantities.get(item.id) ?? 0
+                const disabled = item.itemType === 'product' && (item.stock ?? 0) <= 0
+                return (
+                  <tr
+                    key={`${item.itemType}-${item.id}`}
+                    onClick={() => {
+                      if (disabled) return
+                      onAdd(item)
+                    }}
+                    className={`cursor-pointer border-t border-gray-100 bg-white transition-colors duration-100 hover:bg-brand-tint/60 dark:border-gray-800 dark:bg-gray-800 dark:hover:bg-brand/20 ${
+                      disabled ? 'cursor-not-allowed opacity-40' : ''
+                    }`}
+                  >
+                    <td className="py-2.5 pl-3 font-medium text-gray-800 dark:text-gray-100">
+                      <span className="flex items-center gap-2">
+                        {item.name}
+                        {inCart > 0 && (
+                          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-xs font-semibold text-white">
+                            {inCart}
+                          </span>
+                        )}
+                      </span>
+                    </td>
+                    <td className="py-2.5 pr-2 text-right text-xs text-gray-400">
+                      {item.itemType === 'product' ? `Stock: ${item.stock}` : ''}
+                    </td>
+                    <td className="py-2.5 pr-3 text-right font-semibold text-brand-dark dark:text-brand-light">
+                      {currency.format(item.price)}
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
