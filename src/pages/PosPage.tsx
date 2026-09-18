@@ -9,6 +9,7 @@ import { usePosCatalog } from '../hooks/usePosCatalog'
 import { usePosLayout } from '../hooks/usePosLayout'
 import { useCreateSale } from '../hooks/useCreateSale'
 import { useLabels } from '../hooks/useLabels'
+import { useReceiptPrinter } from '../hooks/useReceiptPrinter'
 import type { CartLine, CatalogItem, PaymentMethod } from '../types'
 
 const currency = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' })
@@ -82,8 +83,10 @@ export default function PosPage() {
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(
     null,
   )
+  const [lastSaleId, setLastSaleId] = useState<string | null>(null)
 
   const createSale = useCreateSale()
+  const { print, printable } = useReceiptPrinter()
 
   const filteredCatalog = useMemo(() => {
     if (!catalog) return []
@@ -127,11 +130,12 @@ export default function PosPage() {
     createSale.mutate(
       { branchId: activeBranchId, cartLines, paymentMethod, total },
       {
-        onSuccess: ({ folio }) => {
+        onSuccess: ({ saleId, folio }) => {
           setFeedback({
             type: 'success',
             text: folio ? `Venta registrada — folio ${folio}` : 'Venta registrada',
           })
+          setLastSaleId(saleId)
           setCart(new Map())
           setCartOpen(false)
         },
@@ -289,11 +293,19 @@ export default function PosPage() {
             </div>
 
             {feedback && (
-              <p
-                className={`mb-3 text-sm ${feedback.type === 'success' ? 'text-success' : 'text-danger'}`}
-              >
-                {feedback.text}
-              </p>
+              <div className="mb-3">
+                <p className={`text-sm ${feedback.type === 'success' ? 'text-success' : 'text-danger'}`}>
+                  {feedback.text}
+                </p>
+                {feedback.type === 'success' && lastSaleId && (
+                  <button
+                    onClick={() => print(lastSaleId)}
+                    className="mt-1.5 text-sm font-semibold text-brand transition-colors duration-150 hover:text-brand-dark"
+                  >
+                    Imprimir ticket
+                  </button>
+                )}
+              </div>
             )}
 
             <button
@@ -306,6 +318,7 @@ export default function PosPage() {
           </div>
         </div>
       </div>
+      {printable}
     </div>
   )
 }

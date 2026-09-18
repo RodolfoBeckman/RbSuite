@@ -16,3 +16,24 @@
 body {
   @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100;
 }
+
+/* Impresión de tickets: el ticket vive siempre en el DOM (oculto) dentro
+   de #receipt-print-root, montado por SaleReceipt vía portal. Al imprimir,
+   se oculta todo lo demás y solo se muestra el ticket, posicionado para
+   ocupar la hoja completa — así no hay que tocar cada layout/página para
+   excluirse de la impresión. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #receipt-print-root,
+  #receipt-print-root * {
+    visibility: visible;
+  }
+  #receipt-print-root {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+}

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import { hasPermission } from '../auth/permissions'
 import { useCancelSale, useSalesHistory } from '../hooks/useSales'
+import { useReceiptPrinter } from '../hooks/useReceiptPrinter'
 
 const currency = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' })
 const dateTime = new Intl.DateTimeFormat('es-MX', {
@@ -30,6 +31,7 @@ export default function SalesHistoryPage() {
 
   const { data: sales, isLoading, error } = useSalesHistory(7)
   const cancelSale = useCancelSale()
+  const { print, printable } = useReceiptPrinter()
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(
     null,
   )
@@ -87,6 +89,12 @@ export default function SalesHistoryPage() {
               <span className="font-semibold text-gray-700 dark:text-gray-300">
                 {currency.format(sale.total)}
               </span>
+              <button
+                onClick={() => print(sale.id)}
+                className="rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-semibold text-gray-500 transition-colors duration-150 hover:border-brand hover:text-brand-dark dark:border-gray-600 dark:text-gray-400"
+              >
+                Reimprimir
+              </button>
               {sale.status === 'cancelled' ? (
                 <span className="rounded-full bg-danger/10 px-2 py-0.5 text-xs font-semibold text-danger">
                   Cancelada
@@ -110,6 +118,7 @@ export default function SalesHistoryPage() {
           </div>
         )}
       </div>
+      {printable}
     </div>
   )
 }
