@@ -9,6 +9,7 @@ import {
   useUploadLogo,
 } from '../hooks/useBranding'
 import { useLabels, useUpdateLabels } from '../hooks/useLabels'
+import { usePublicPageSettings, useUpdatePublicPageSettings } from '../hooks/usePublicPageSettings'
 import {
   useBranches,
   useCreateBranch,
@@ -39,6 +40,7 @@ const SETTINGS_NAV = [
   { to: 'sucursales', label: 'Sucursales' },
   { to: 'equipo', label: 'Equipo' },
   { to: 'etiquetas', label: 'Etiquetas' },
+  { to: 'pagina-publica', label: 'Página pública' },
   { to: 'auditoria', label: 'Auditoría' },
 ]
 
@@ -399,6 +401,8 @@ export function BranchesSection() {
   const [newBranch, setNewBranch] = useState({
     name: '',
     address: '',
+    phone: '',
+    hours: '',
     timezone: TIMEZONE_OPTIONS[0],
   })
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(
@@ -411,7 +415,7 @@ export function BranchesSection() {
     createBranch.mutate(newBranch, {
       onSuccess: () => {
         setFeedback({ type: 'success', text: 'Sucursal creada' })
-        setNewBranch({ name: '', address: '', timezone: TIMEZONE_OPTIONS[0] })
+        setNewBranch({ name: '', address: '', phone: '', hours: '', timezone: TIMEZONE_OPTIONS[0] })
       },
       onError: (error) =>
         setFeedback({
@@ -462,6 +466,20 @@ export function BranchesSection() {
             }
             className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
           />
+          <input
+            type="text"
+            placeholder="Teléfono (opcional)"
+            value={newBranch.phone}
+            onChange={(event) => setNewBranch((prev) => ({ ...prev, phone: event.target.value }))}
+            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+          />
+          <input
+            type="text"
+            placeholder="Horario (ej. Lun-Sáb 9am-7pm)"
+            value={newBranch.hours}
+            onChange={(event) => setNewBranch((prev) => ({ ...prev, hours: event.target.value }))}
+            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+          />
           <select
             value={newBranch.timezone}
             onChange={(event) =>
@@ -499,6 +517,8 @@ function BranchRow({ branch }: { branch: BranchDetail }) {
   const [form, setForm] = useState({
     name: branch.name,
     address: branch.address ?? '',
+    phone: branch.phone ?? '',
+    hours: branch.hours ?? '',
     timezone: branch.timezone,
     active: branch.active,
   })
@@ -507,6 +527,8 @@ function BranchRow({ branch }: { branch: BranchDetail }) {
   const dirty =
     form.name !== branch.name ||
     form.address !== (branch.address ?? '') ||
+    form.phone !== (branch.phone ?? '') ||
+    form.hours !== (branch.hours ?? '') ||
     form.timezone !== branch.timezone ||
     form.active !== branch.active
 
@@ -535,6 +557,20 @@ function BranchRow({ branch }: { branch: BranchDetail }) {
           placeholder="Dirección"
           value={form.address}
           onChange={(event) => setForm((prev) => ({ ...prev, address: event.target.value }))}
+          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+        />
+        <input
+          type="text"
+          placeholder="Teléfono"
+          value={form.phone}
+          onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))}
+          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+        />
+        <input
+          type="text"
+          placeholder="Horario"
+          value={form.hours}
+          onChange={(event) => setForm((prev) => ({ ...prev, hours: event.target.value }))}
           className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
         />
         <select
@@ -630,6 +666,118 @@ export function LabelsSection() {
         className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-brand-dark disabled:opacity-50"
       >
         {updateLabels.isPending ? 'Guardando…' : 'Guardar textos'}
+      </button>
+
+      {feedback && (
+        <p className={`mt-3 text-sm ${feedback.type === 'success' ? 'text-success' : 'text-danger'}`}>
+          {feedback.text}
+        </p>
+      )}
+    </div>
+  )
+}
+
+export function PublicPageSection() {
+  const { data: settings, isLoading } = usePublicPageSettings()
+  const updateSettings = useUpdatePublicPageSettings()
+
+  const [form, setForm] = useState({ whatsapp: '', description: '' })
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(
+    null,
+  )
+  const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    if (settings) setForm({ whatsapp: settings.whatsapp, description: settings.description })
+  }, [settings])
+
+  const publicUrl = settings?.slug ? `${window.location.origin}/negocio/${settings.slug}` : null
+
+  function handleSave() {
+    setFeedback(null)
+    updateSettings.mutate(form, {
+      onSuccess: () => setFeedback({ type: 'success', text: 'Página pública actualizada' }),
+      onError: (error) =>
+        setFeedback({
+          type: 'error',
+          text: error instanceof Error ? error.message : 'No se pudo guardar',
+        }),
+    })
+  }
+
+  async function handleCopy() {
+    if (!publicUrl) return
+    try {
+      await navigator.clipboard.writeText(publicUrl)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Clipboard puede fallar por permisos del navegador; no es crítico,
+      // el enlace ya se muestra en pantalla para copiar a mano.
+    }
+  }
+
+  if (isLoading) {
+    return <p className="text-sm text-gray-500 dark:text-gray-400">Cargando…</p>
+  }
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+      <h2 className="mb-1 font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
+        Página pública
+      </h2>
+      <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
+        Una página visible para cualquiera, con tus servicios, sucursales y un botón de contacto
+        por WhatsApp. Usa el logo y color de marca que ya configuraste.
+      </p>
+
+      {publicUrl && (
+        <div className="mb-5 flex flex-wrap items-center gap-2 rounded-lg bg-gray-50 px-3 py-2 dark:bg-gray-900">
+          <a
+            href={publicUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="truncate text-sm font-medium text-brand-dark hover:underline dark:text-brand-light"
+          >
+            {publicUrl}
+          </a>
+          <button
+            onClick={handleCopy}
+            className="ml-auto rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors duration-150 hover:border-brand hover:text-brand-dark dark:border-gray-600 dark:text-gray-300"
+          >
+            {copied ? 'Copiado' : 'Copiar enlace'}
+          </button>
+        </div>
+      )}
+
+      <label className="mb-1 block text-sm text-gray-600 dark:text-gray-300">
+        Descripción breve
+      </label>
+      <textarea
+        value={form.description}
+        onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
+        rows={3}
+        placeholder="Ej. Salón de belleza con más de 10 años de experiencia en Guadalajara."
+        className="mb-4 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+      />
+
+      <label className="mb-1 block text-sm text-gray-600 dark:text-gray-300">
+        WhatsApp de contacto
+      </label>
+      <input
+        type="text"
+        value={form.whatsapp}
+        onChange={(event) => setForm((prev) => ({ ...prev, whatsapp: event.target.value }))}
+        placeholder="Ej. 33 1234 5678"
+        className="mb-4 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+      />
+
+      <button
+        onClick={handleSave}
+        disabled={updateSettings.isPending}
+        className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-brand-dark disabled:opacity-50"
+      >
+        {updateSettings.isPending ? 'Guardando…' : 'Guardar'}
       </button>
 
       {feedback && (

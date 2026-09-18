@@ -28,6 +28,8 @@ export function useBranches() {
 
 export interface BranchDetail extends Branch {
   address: string | null
+  phone: string | null
+  hours: string | null
   timezone: string
   active: boolean
 }
@@ -43,7 +45,7 @@ export function useManageBranches() {
     queryFn: async (): Promise<BranchDetail[]> => {
       const { data, error } = await supabase
         .from('branches')
-        .select('id, business_id, name, address, timezone, active')
+        .select('id, business_id, name, address, phone, hours, timezone, active')
         .order('name')
 
       if (error) throw error
@@ -53,6 +55,8 @@ export function useManageBranches() {
         businessId: row.business_id,
         name: row.name,
         address: row.address,
+        phone: row.phone,
+        hours: row.hours,
         timezone: row.timezone,
         active: row.active,
       }))
@@ -75,11 +79,19 @@ export function useCreateBranch() {
   const invalidate = useInvalidateBranches()
 
   return useMutation({
-    mutationFn: async (input: { name: string; address: string; timezone: string }) => {
+    mutationFn: async (input: {
+      name: string
+      address: string
+      phone: string
+      hours: string
+      timezone: string
+    }) => {
       const { error } = await supabase.from('branches').insert({
         business_id: membership!.businessId,
         name: input.name,
         address: input.address || null,
+        phone: input.phone || null,
+        hours: input.hours || null,
         timezone: input.timezone,
       })
       if (error) throw error
@@ -96,6 +108,8 @@ export function useUpdateBranch() {
       id: string
       name: string
       address: string
+      phone: string
+      hours: string
       timezone: string
       active: boolean
     }) => {
@@ -104,6 +118,8 @@ export function useUpdateBranch() {
         .update({
           name: input.name,
           address: input.address || null,
+          phone: input.phone || null,
+          hours: input.hours || null,
           timezone: input.timezone,
           active: input.active,
         })
