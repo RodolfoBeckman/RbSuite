@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useAuth } from '../auth/AuthContext'
 import { supabase } from '../lib/supabase'
 import type { PaymentMethod } from '../types'
 
@@ -73,12 +74,17 @@ export function useCustomer(customerId: string | null) {
 
 export function useCreateCustomer() {
   const queryClient = useQueryClient()
+  const { membership } = useAuth()
 
   return useMutation({
     mutationFn: async (input: { name: string; phone?: string }): Promise<Customer> => {
       const { data, error } = await supabase
         .from('customers')
-        .insert({ name: input.name, phone: input.phone || null })
+        .insert({
+          business_id: membership!.businessId,
+          name: input.name,
+          phone: input.phone || null,
+        })
         .select('id, name, phone, notes, credit_limit, balance, is_active')
         .single()
 
