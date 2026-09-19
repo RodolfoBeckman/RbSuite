@@ -97,13 +97,19 @@ export function useReportSalesByEmployee(range: DateRange) {
   })
 }
 
-export function useReportProfitMargin(range: DateRange) {
+export function useReportProfitMargin(range: DateRange, employeeUserId: string | null = null) {
   return useQuery({
-    queryKey: ['report-profit-margin', toDateParam(range.from), toDateParam(range.to)],
+    queryKey: [
+      'report-profit-margin',
+      toDateParam(range.from),
+      toDateParam(range.to),
+      employeeUserId,
+    ],
     queryFn: async (): Promise<ReportProfitLine[]> => {
       const { data, error } = await supabase.rpc('report_profit_margin', {
         p_from: toDateParam(range.from),
         p_to: toDateParam(range.to),
+        p_employee_user_id: employeeUserId,
       })
       if (error) throw error
       return (

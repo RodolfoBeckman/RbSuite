@@ -127,7 +127,13 @@ export default function ReportesPage() {
   const { data: summary, isLoading: loadingSummary } = useReportSalesSummary(range)
   const { data: trend, isLoading: loadingTrend } = useReportSalesTrend(range)
   const { data: byEmployee, isLoading: loadingEmployees } = useReportSalesByEmployee(range)
-  const { data: profitLines, isLoading: loadingProfit } = useReportProfitMargin(range)
+  const [selectedEmployee, setSelectedEmployee] = useState<{ userId: string; email: string } | null>(
+    null,
+  )
+  const { data: profitLines, isLoading: loadingProfit } = useReportProfitMargin(
+    range,
+    selectedEmployee?.userId ?? null,
+  )
 
   const profitTotals = useMemo(
     () =>
@@ -164,8 +170,9 @@ export default function ReportesPage() {
   }
 
   function exportProfit() {
+    const suffix = selectedEmployee ? `_${selectedEmployee.email}` : ''
     downloadCsv(
-      `utilidad_${toInputValue(range.from)}_${toInputValue(range.to)}.csv`,
+      `utilidad_${toInputValue(range.from)}_${toInputValue(range.to)}${suffix}.csv`,
       ['Producto/servicio', 'Tipo', 'Cantidad', 'Ingresos', 'Costo', 'Utilidad'],
       (profitLines ?? []).map((row) => [
         row.itemName,
@@ -260,9 +267,14 @@ export default function ReportesPage() {
 
       <div className="animate-fade-in rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:p-6">
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="font-serif text-base font-semibold text-brand-dark dark:text-brand-light">
-            Ventas por empleado
-          </h3>
+          <div>
+            <h3 className="font-serif text-base font-semibold text-brand-dark dark:text-brand-light">
+              Ventas por empleado
+            </h3>
+            <p className="text-xs text-gray-400 print:hidden">
+              Clic en un empleado para ver qué vendió, abajo.
+            </p>
+          </div>
           <button
             onClick={exportEmployees}
             disabled={!byEmployee?.length}
@@ -288,7 +300,17 @@ export default function ReportesPage() {
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {byEmployee.map((row) => (
-                  <tr key={row.userId}>
+                  <tr
+                    key={row.userId}
+                    onClick={() =>
+                      setSelectedEmployee((prev) =>
+                        prev?.userId === row.userId ? null : { userId: row.userId, email: row.email },
+                      )
+                    }
+                    className={`cursor-pointer transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-900/50 print:cursor-auto ${
+                      selectedEmployee?.userId === row.userId ? 'bg-brand-tint dark:bg-brand/20' : ''
+                    }`}
+                  >
                     <td className="py-2 pr-2 text-gray-700 dark:text-gray-300">{row.email}</td>
                     <td className="py-2 pr-2 text-right text-gray-600 dark:text-gray-400">
                       {row.salesCount}
@@ -306,9 +328,22 @@ export default function ReportesPage() {
 
       <div className="animate-fade-in rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:p-6">
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="font-serif text-base font-semibold text-brand-dark dark:text-brand-light">
-            Utilidad por producto/servicio
-          </h3>
+          <div>
+            <h3 className="font-serif text-base font-semibold text-brand-dark dark:text-brand-light">
+              Utilidad por producto/servicio
+            </h3>
+            {selectedEmployee && (
+              <p className="flex items-center gap-2 text-xs text-gray-500">
+                Filtrado por: <span className="font-semibold">{selectedEmployee.email}</span>
+                <button
+                  onClick={() => setSelectedEmployee(null)}
+                  className="text-brand underline print:hidden"
+                >
+                  Ver todos
+                </button>
+              </p>
+            )}
+          </div>
           <button
             onClick={exportProfit}
             disabled={!profitLines?.length}
