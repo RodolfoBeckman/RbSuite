@@ -9,6 +9,7 @@ import PosPage from './pages/PosPage'
 import CajaPage from './pages/CajaPage'
 import SalesHistoryPage from './pages/SalesHistoryPage'
 import InventoryPage from './pages/InventoryPage'
+import ReportesPage from './pages/ReportesPage'
 import SettingsPage, {
   SettingsIndexRedirect,
   BrandingSection,
@@ -42,6 +43,7 @@ export default function App() {
             <Route path="/inventario" element={<InventoryPage />} />
           </Route>
           <Route element={<ProtectedRoute allowedRoles={['administrador', 'gerente']} />}>
+            <Route path="/reportes" element={<ReportesPage />} />
             <Route path="/configuracion" element={<SettingsPage />}>
               <Route index element={<SettingsIndexRedirect />} />
               <Route path="marca" element={<BrandingSection />} />
