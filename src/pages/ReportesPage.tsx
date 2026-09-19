@@ -1,12 +1,27 @@
 import { useMemo, useState } from 'react'
 import {
+  previousPeriod,
+  useReportPaymentMethods,
   useReportProfitMargin,
+  useReportSalesByBranch,
   useReportSalesByEmployee,
   useReportSalesSummary,
   useReportSalesTrend,
   type DateRange,
 } from '../hooks/useReports'
 import { downloadCsv } from '../utils/csvExport'
+
+const PAYMENT_LABEL: Record<string, string> = {
+  cash: 'Efectivo',
+  card: 'Tarjeta',
+  transfer: 'Transferencia',
+}
+
+const PAYMENT_COLOR: Record<string, string> = {
+  cash: 'rgb(var(--brand))',
+  card: '#B58A2A',
+  transfer: 'rgb(var(--brand-light))',
+}
 
 const currency = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' })
 const shortDate = new Intl.DateTimeFormat('es-MX', { day: '2-digit', month: 'short' })
@@ -120,12 +135,102 @@ function TrendChart({ data }: { data: { day: string; total: number }[] }) {
   )
 }
 
+function PaymentDonut({ data }: { data: { method: string; total: number }[] }) {
+  const total = data.reduce((sum, d) => sum + d.total, 0)
+  const radius = 42
+  const circumference = 2 * Math.PI * radius
+  let offset = 0
+
+  return (
+    <div className="flex flex-wrap items-center gap-6">
+      <div className="relative h-32 w-32 shrink-0">
+        <svg viewBox="0 0 100 100" className="h-32 w-32 -rotate-90">
+          <circle
+            cx="50"
+            cy="50"
+            r={radius}
+            fill="none"
+            strokeWidth="14"
+            className="stroke-gray-100 dark:stroke-gray-700"
+          />
+          {total > 0 &&
+            data.map((d) => {
+              const fraction = d.total / total
+              const length = fraction * circumference
+              const segment = (
+                <circle
+                  key={d.method}
+                  cx="50"
+                  cy="50"
+                  r={radius}
+                  fill="none"
+                  stroke={PAYMENT_COLOR[d.method] ?? '#9CA3AF'}
+                  strokeWidth="14"
+                  strokeDasharray={`${length} ${circumference - length}`}
+                  strokeDashoffset={-offset}
+                />
+              )
+              offset += length
+              return segment
+            })}
+        </svg>
+        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-[10px] uppercase text-gray-400">Total</span>
+          <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+            {currency.format(total)}
+          </span>
+        </div>
+      </div>
+      <div className="space-y-1.5 text-sm">
+        {data.map((d) => (
+          <div key={d.method} className="flex items-center gap-2">
+            <span
+              className="h-2.5 w-2.5 rounded-full"
+              style={{ backgroundColor: PAYMENT_COLOR[d.method] ?? '#9CA3AF' }}
+            />
+            <span className="text-gray-600 dark:text-gray-300">
+              {PAYMENT_LABEL[d.method] ?? d.method}
+            </span>
+            <span className="font-semibold text-gray-800 dark:text-gray-200">
+              {currency.format(d.total)}
+            </span>
+          </div>
+        ))}
+        {!data.length && <p className="text-sm text-gray-400">Sin ventas en este periodo.</p>}
+      </div>
+    </div>
+  )
+}
+
+function PercentBadge({ current, previous }: { current: number; previous: number }) {
+  if (previous === 0) {
+    return current > 0 ? (
+      <span className="text-xs font-semibold text-success">nuevo</span>
+    ) : null
+  }
+  const change = ((current - previous) / previous) * 100
+  const up = change >= 0
+  return (
+    <span className={`text-xs font-semibold ${up ? 'text-success' : 'text-danger'}`}>
+      {up ? '▲' : '▼'} {Math.abs(change).toFixed(0)}%
+    </span>
+  )
+}
+
 export default function ReportesPage() {
   const [range, setRange] = useState<DateRange>(() => ({ from: daysAgo(29), to: daysAgo(0) }))
   const [activePreset, setActivePreset] = useState('last30')
 
   const { data: summary, isLoading: loadingSummary } = useReportSalesSummary(range)
+  const { data: previousSummary } = useReportSalesSummary(useMemo(() => previousPeriod(range), [range]))
   const { data: trend, isLoading: loadingTrend } = useReportSalesTrend(range)
+  const {
+    data: paymentMethods,
+    isLoading: loadingPayments,
+    error: paymentsError,
+  } = useReportPaymentMethods(range)
+  const { data: byBranch, isLoading: loadingBranches, error: branchesError } =
+    useReportSalesByBranch(range)
   const { data: byEmployee, isLoading: loadingEmployees, error: employeesError } =
     useReportSalesByEmployee(range)
   const [selectedEmployee, setSelectedEmployee] = useState<{ userId: string; email: string } | null>(
@@ -237,22 +342,40 @@ export default function ReportesPage() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="animate-fade-in rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-          <p className="text-xs font-semibold uppercase text-gray-400">Total del periodo</p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold uppercase text-gray-400">Total del periodo</p>
+            {previousSummary && (
+              <PercentBadge current={summary?.total ?? 0} previous={previousSummary.total} />
+            )}
+          </div>
           <p className="mt-1 font-serif text-2xl font-semibold text-brand-dark dark:text-brand-light">
             {loadingSummary ? '—' : currency.format(summary?.total ?? 0)}
           </p>
+          <p className="text-xs text-gray-400 print:hidden">vs. periodo anterior</p>
         </div>
         <div className="animate-fade-in rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-          <p className="text-xs font-semibold uppercase text-gray-400">Ventas</p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold uppercase text-gray-400">Ventas</p>
+            {previousSummary && (
+              <PercentBadge current={summary?.salesCount ?? 0} previous={previousSummary.salesCount} />
+            )}
+          </div>
           <p className="mt-1 font-serif text-2xl font-semibold text-brand-dark dark:text-brand-light">
             {loadingSummary ? '—' : summary?.salesCount ?? 0}
           </p>
+          <p className="text-xs text-gray-400 print:hidden">vs. periodo anterior</p>
         </div>
         <div className="animate-fade-in rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-          <p className="text-xs font-semibold uppercase text-gray-400">Ticket promedio</p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold uppercase text-gray-400">Ticket promedio</p>
+            {previousSummary && (
+              <PercentBadge current={summary?.avgTicket ?? 0} previous={previousSummary.avgTicket} />
+            )}
+          </div>
           <p className="mt-1 font-serif text-2xl font-semibold text-brand-dark dark:text-brand-light">
             {loadingSummary ? '—' : currency.format(summary?.avgTicket ?? 0)}
           </p>
+          <p className="text-xs text-gray-400 print:hidden">vs. periodo anterior</p>
         </div>
       </div>
 
@@ -265,6 +388,59 @@ export default function ReportesPage() {
         ) : (
           <TrendChart data={trend ?? []} />
         )}
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="animate-fade-in rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:p-6">
+          <h3 className="mb-3 font-serif text-base font-semibold text-brand-dark dark:text-brand-light">
+            Métodos de pago
+          </h3>
+          {loadingPayments && <p className="text-sm text-gray-500 dark:text-gray-400">Cargando…</p>}
+          {!!paymentsError && (
+            <p className="text-sm text-danger">
+              No se pudo cargar el reporte: {paymentsError instanceof Error ? paymentsError.message : 'error desconocido'}
+            </p>
+          )}
+          {!loadingPayments && !paymentsError && <PaymentDonut data={paymentMethods ?? []} />}
+        </div>
+
+        <div className="animate-fade-in rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:p-6">
+          <h3 className="mb-3 font-serif text-base font-semibold text-brand-dark dark:text-brand-light">
+            Ventas por sucursal
+          </h3>
+          {loadingBranches && <p className="text-sm text-gray-500 dark:text-gray-400">Cargando…</p>}
+          {!!branchesError && (
+            <p className="text-sm text-danger">
+              No se pudo cargar el reporte: {branchesError instanceof Error ? branchesError.message : 'error desconocido'}
+            </p>
+          )}
+          {!loadingBranches && !branchesError && !byBranch?.length && (
+            <p className="text-sm text-gray-400">Sin sucursales.</p>
+          )}
+          {!!byBranch?.length && (
+            <div className="space-y-2">
+              {(() => {
+                const maxTotal = Math.max(1, ...byBranch.map((b) => b.total))
+                return byBranch.map((branch) => (
+                  <div key={branch.branchId}>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-700 dark:text-gray-300">{branch.branchName}</span>
+                      <span className="font-semibold text-gray-800 dark:text-gray-200">
+                        {currency.format(branch.total)}
+                      </span>
+                    </div>
+                    <div className="mt-1 h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700">
+                      <div
+                        className="h-full rounded-full bg-brand transition-all duration-300"
+                        style={{ width: `${(branch.total / maxTotal) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                ))
+              })()}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="animate-fade-in rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:p-6">

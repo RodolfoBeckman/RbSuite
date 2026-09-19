@@ -28,6 +28,17 @@ export interface ReportProfitLine {
   profit: number
 }
 
+export interface ReportPaymentMethod {
+  method: string
+  total: number
+}
+
+export interface ReportBranchSales {
+  branchId: string
+  branchName: string
+  total: number
+}
+
 // yyyy-mm-dd — lo que espera un parámetro `date` de Postgres vía PostgREST.
 function toDateParam(date: Date): string {
   return date.toISOString().slice(0, 10)
@@ -131,4 +142,52 @@ export function useReportProfitMargin(range: DateRange, employeeUserId: string |
       }))
     },
   })
+}
+
+export function useReportPaymentMethods(range: DateRange) {
+  return useQuery({
+    queryKey: ['report-payment-methods', toDateParam(range.from), toDateParam(range.to)],
+    queryFn: async (): Promise<ReportPaymentMethod[]> => {
+      const { data, error } = await supabase.rpc('report_payment_methods', {
+        p_from: toDateParam(range.from),
+        p_to: toDateParam(range.to),
+      })
+      if (error) throw error
+      return ((data ?? []) as { method: string; total: number }[]).map((row) => ({
+        method: row.method,
+        total: Number(row.total),
+      }))
+    },
+  })
+}
+
+export function useReportSalesByBranch(range: DateRange) {
+  return useQuery({
+    queryKey: ['report-sales-by-branch', toDateParam(range.from), toDateParam(range.to)],
+    queryFn: async (): Promise<ReportBranchSales[]> => {
+      const { data, error } = await supabase.rpc('report_sales_by_branch', {
+        p_from: toDateParam(range.from),
+        p_to: toDateParam(range.to),
+      })
+      if (error) throw error
+      return (
+        (data ?? []) as { branch_id: string; branch_name: string; total: number }[]
+      ).map((row) => ({
+        branchId: row.branch_id,
+        branchName: row.branch_name,
+        total: Number(row.total),
+      }))
+    },
+  })
+}
+
+// Rango previo de la misma duración, inmediatamente antes de `range` —
+// para "comparación entre periodos" (ej. este mes vs. el anterior) sin
+// necesitar una función SQL nueva: se reutiliza report_sales_summary dos
+// veces (rango actual + este).
+export function previousPeriod(range: DateRange): DateRange {
+  const spanMs = range.to.getTime() - range.from.getTime()
+  const to = new Date(range.from.getTime() - 24 * 60 * 60 * 1000)
+  const from = new Date(to.getTime() - spanMs)
+  return { from, to }
 }
