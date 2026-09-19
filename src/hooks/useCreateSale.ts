@@ -5,8 +5,7 @@ import type { CartLine, PaymentMethod } from '../types'
 interface CreateSaleArgs {
   branchId: string
   cartLines: CartLine[]
-  paymentMethod: PaymentMethod
-  total: number
+  payments: { method: PaymentMethod; amount: number }[]
   customerId?: string | null
 }
 
@@ -22,8 +21,7 @@ export function useCreateSale() {
     mutationFn: async ({
       branchId,
       cartLines,
-      paymentMethod,
-      total,
+      payments,
       customerId,
     }: CreateSaleArgs): Promise<CreateSaleResult> => {
       const payload = {
@@ -37,7 +35,7 @@ export function useCreateSale() {
           unit_price: line.item.price,
           discount_amount: 0,
         })),
-        payments: [{ method: paymentMethod, amount: total }],
+        payments,
       }
 
       const { data: saleId, error } = await supabase.rpc('create_sale', { payload })

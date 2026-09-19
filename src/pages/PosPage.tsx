@@ -18,6 +18,10 @@ import { getErrorMessage } from '../utils/getErrorMessage'
 
 const currency = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' })
 
+function round2(value: number) {
+  return Math.round((value + Number.EPSILON) * 100) / 100
+}
+
 function SearchIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
@@ -93,6 +97,8 @@ export default function PosPage() {
   const [cart, setCart] = useState<Map<string, CartLine>>(new Map())
   const [cartOpen, setCartOpen] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash')
+  const [splitMode, setSplitMode] = useState(false)
+  const [splitLines, setSplitLines] = useState<{ method: PaymentMethod; amount: string }[]>([])
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(
     null,
@@ -108,7 +114,14 @@ export default function PosPage() {
   // seleccionado uno que ya no se puede usar.
   useEffect(() => {
     if (!enabledMethods?.length) return
-    if (!enabledMethods.includes(paymentMethod)) {
+    if (splitMode) {
+      const stillValid = splitLines.every((line) => enabledMethods.includes(line.method))
+      if (!stillValid) {
+        setSplitMode(false)
+        setSplitLines([])
+        setPaymentMethod(enabledMethods[0])
+      }
+    } else if (!enabledMethods.includes(paymentMethod)) {
       setPaymentMethod(enabledMethods[0])
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -127,6 +140,56 @@ export default function PosPage() {
     () => new Map(cartLines.map((line) => [line.item.id, line.quantity])),
     [cartLines],
   )
+
+  const effectivePayments: { method: PaymentMethod; amount: number }[] = splitMode
+    ? splitLines.map((line) => ({ method: line.method, amount: parseFloat(line.amount) || 0 }))
+    : [{ method: paymentMethod, amount: total }]
+  const paidTotal = round2(effectivePayments.reduce((sum, p) => sum + p.amount, 0))
+  const remaining = round2(total - paidTotal)
+  const hasFiado = effectivePayments.some((p) => p.method === 'fiado' && p.amount > 0)
+
+  function enableSplit() {
+    const other = (enabledMethods ?? []).find((m) => m !== paymentMethod)
+    if (!other) return
+    setSplitLines([
+      { method: paymentMethod, amount: '' },
+      { method: other, amount: '' },
+    ])
+    setSplitMode(true)
+  }
+
+  function cancelSplit() {
+    setPaymentMethod(splitLines[0]?.method ?? paymentMethod)
+    setSplitMode(false)
+    setSplitLines([])
+  }
+
+  function updateSplitLineMethod(index: number, method: PaymentMethod) {
+    setSplitLines((prev) => prev.map((line, i) => (i === index ? { ...line, method } : line)))
+  }
+
+  function updateSplitLineAmount(index: number, amount: string) {
+    setSplitLines((prev) => prev.map((line, i) => (i === index ? { ...line, amount } : line)))
+  }
+
+  function addSplitLine() {
+    const used = new Set(splitLines.map((line) => line.method))
+    const next = (enabledMethods ?? []).find((m) => !used.has(m))
+    if (!next) return
+    setSplitLines((prev) => [...prev, { method: next, amount: '' }])
+  }
+
+  function removeSplitLine(index: number) {
+    setSplitLines((prev) => {
+      const next = prev.filter((_, i) => i !== index)
+      if (next.length <= 1) {
+        setSplitMode(false)
+        setPaymentMethod(next[0]?.method ?? paymentMethod)
+        return []
+      }
+      return next
+    })
+  }
 
   function addToCart(item: CatalogItem) {
     setCart((prev) => {
@@ -152,10 +215,11 @@ export default function PosPage() {
 
   function handleCheckout() {
     if (!activeBranchId || cartLines.length === 0) return
-    if (paymentMethod === 'fiado' && !customer) return
+    if (hasFiado && !customer) return
+    if (splitMode && (remaining !== 0 || effectivePayments.some((p) => p.amount <= 0))) return
     setFeedback(null)
     createSale.mutate(
-      { branchId: activeBranchId, cartLines, paymentMethod, total, customerId: customer?.id },
+      { branchId: activeBranchId, cartLines, payments: effectivePayments, customerId: customer?.id },
       {
         onSuccess: ({ saleId, folio }) => {
           setFeedback({
@@ -166,6 +230,8 @@ export default function PosPage() {
           setCart(new Map())
           setCartOpen(false)
           setCustomer(null)
+          setSplitMode(false)
+          setSplitLines([])
         },
         onError: (error) => {
           setFeedback({
@@ -303,27 +369,118 @@ export default function PosPage() {
               <span>{currency.format(total)}</span>
             </div>
 
-            <div className="mb-3 grid grid-cols-3 gap-2">
-              {(enabledMethods ?? ['cash', 'card', 'transfer']).map((method) => {
-                const meta = PAYMENT_METHOD_META[method]
-                return (
-                  <button
-                    key={method}
-                    onClick={() => setPaymentMethod(method)}
-                    className={`flex flex-col items-center gap-1 rounded-lg border px-2 py-2 text-xs font-semibold transition-colors duration-150 ${
-                      paymentMethod === method
-                        ? 'border-brand bg-brand-tint text-brand-dark dark:bg-brand/20 dark:text-brand-light'
-                        : 'border-gray-200 text-gray-500 hover:border-brand dark:border-gray-600 dark:text-gray-400'
-                    }`}
-                  >
-                    <meta.icon className="h-4 w-4" />
-                    {meta.label}
-                  </button>
-                )
-              })}
-            </div>
+            {!splitMode && (
+              <>
+                <div className="mb-2 grid grid-cols-3 gap-2">
+                  {(enabledMethods ?? ['cash', 'card', 'transfer']).map((method) => {
+                    const meta = PAYMENT_METHOD_META[method]
+                    return (
+                      <button
+                        key={method}
+                        onClick={() => setPaymentMethod(method)}
+                        className={`flex flex-col items-center gap-1 rounded-lg border px-2 py-2 text-xs font-semibold transition-colors duration-150 ${
+                          paymentMethod === method
+                            ? 'border-brand bg-brand-tint text-brand-dark dark:bg-brand/20 dark:text-brand-light'
+                            : 'border-gray-200 text-gray-500 hover:border-brand dark:border-gray-600 dark:text-gray-400'
+                        }`}
+                      >
+                        <meta.icon className="h-4 w-4" />
+                        {meta.label}
+                      </button>
+                    )
+                  })}
+                </div>
 
-            {paymentMethod === 'fiado' && (
+                {cartLines.length > 0 && (enabledMethods?.length ?? 0) > 1 && (
+                  <button
+                    type="button"
+                    onClick={enableSplit}
+                    className="mb-3 text-xs font-semibold text-brand transition-colors duration-150 hover:text-brand-dark"
+                  >
+                    + Dividir el pago entre dos métodos
+                  </button>
+                )}
+              </>
+            )}
+
+            {splitMode && (
+              <div className="mb-3 space-y-2 rounded-lg border border-gray-200 p-3 dark:border-gray-600">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                    Dividir pago
+                  </span>
+                  <button
+                    type="button"
+                    onClick={cancelSplit}
+                    className="text-xs text-gray-400 transition-colors duration-150 hover:text-danger"
+                  >
+                    Cancelar división
+                  </button>
+                </div>
+
+                {splitLines.map((line, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <select
+                      value={line.method}
+                      onChange={(event) =>
+                        updateSplitLineMethod(index, event.target.value as PaymentMethod)
+                      }
+                      className="rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-xs focus:border-brand focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+                    >
+                      {(enabledMethods ?? []).map((m) => (
+                        <option
+                          key={m}
+                          value={m}
+                          disabled={splitLines.some((other, i) => i !== index && other.method === m)}
+                        >
+                          {PAYMENT_METHOD_META[m].label}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={line.amount}
+                      onChange={(event) => updateSplitLineAmount(index, event.target.value)}
+                      placeholder="0.00"
+                      className="w-full min-w-0 flex-1 rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-xs focus:border-brand focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+                    />
+                    {splitLines.length > 2 && (
+                      <button
+                        type="button"
+                        onClick={() => removeSplitLine(index)}
+                        className="shrink-0 text-gray-400 transition-colors duration-150 hover:text-danger"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                ))}
+
+                {(enabledMethods?.length ?? 0) > splitLines.length && (
+                  <button
+                    type="button"
+                    onClick={addSplitLine}
+                    className="text-xs font-semibold text-brand transition-colors duration-150 hover:text-brand-dark"
+                  >
+                    + Agregar método
+                  </button>
+                )}
+
+                <p
+                  className={`text-xs font-medium ${remaining === 0 ? 'text-success' : 'text-danger'}`}
+                >
+                  {remaining === 0
+                    ? 'Montos completos'
+                    : remaining > 0
+                      ? `Falta ${currency.format(remaining)}`
+                      : `Sobra ${currency.format(Math.abs(remaining))}`}
+                </p>
+              </div>
+            )}
+
+            {hasFiado && (
               <div className="mb-3">
                 <CustomerPicker value={customer} onChange={setCustomer} />
               </div>
@@ -350,7 +507,8 @@ export default function PosPage() {
               disabled={
                 cartLines.length === 0 ||
                 createSale.isPending ||
-                (paymentMethod === 'fiado' && !customer)
+                (splitMode && (remaining !== 0 || effectivePayments.some((p) => p.amount <= 0))) ||
+                (hasFiado && !customer)
               }
               className="w-full rounded-lg bg-brand py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-md disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none"
             >
