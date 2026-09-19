@@ -12,6 +12,10 @@ import {
   useUploadLogo,
 } from '../hooks/useBranding'
 import { useBusinessModules, useUpdateBusinessModules, type BusinessModules } from '../hooks/useBusinessModules'
+import {
+  useManageBranchPaymentMethods,
+  useUpdateBranchPaymentMethod,
+} from '../hooks/useBranchPaymentMethods'
 import { useLabels, useUpdateLabels } from '../hooks/useLabels'
 import { usePosLayout, useUpdatePosLayout } from '../hooks/usePosLayout'
 import { usePublicPageSettings, useUpdatePublicPageSettings } from '../hooks/usePublicPageSettings'
@@ -132,6 +136,7 @@ const SETTINGS_NAV: {
   { to: 'etiquetas', label: 'Etiquetas', permission: 'manage_branding', icon: TagIcon },
   { to: 'punto-de-venta', label: 'Punto de venta', permission: 'manage_branding', icon: CashRegisterIcon },
   { to: 'modulos', label: 'Módulos', permission: 'manage_branding', icon: GridIcon },
+  { to: 'metodos-de-pago', label: 'Métodos de pago', permission: 'manage_branding', icon: CashRegisterIcon },
   { to: 'pagina-publica', label: 'Página pública', permission: 'manage_branding', icon: GlobeIcon },
   { to: 'auditoria', label: 'Auditoría', permission: 'view_audit_log', icon: ShieldIcon },
 ]
@@ -1008,6 +1013,107 @@ export function ModulesSection() {
           </label>
         ))}
       </div>
+
+      {feedback && (
+        <p className={`mt-3 text-sm ${feedback.type === 'success' ? 'text-success' : 'text-danger'}`}>
+          {feedback.text}
+        </p>
+      )}
+    </div>
+  )
+}
+
+const PAYMENT_METHOD_LABELS: Record<string, { label: string; hint: string }> = {
+  cash: { label: 'Efectivo', hint: '' },
+  card: { label: 'Tarjeta', hint: '' },
+  transfer: { label: 'Transferencia', hint: '' },
+  fiado: {
+    label: 'Fiado',
+    hint: 'Venta a crédito con registro de deuda por cliente. Apagarlo aquí no afecta ventas ya hechas, solo lo que aparece como opción a futuro en esta sucursal.',
+  },
+}
+
+export function PaymentMethodsSection() {
+  const { data: branches } = useBranches()
+  const [branchId, setBranchId] = useState<string | null>(null)
+  const activeBranchId = branchId ?? branches?.[0]?.id ?? null
+
+  const { data: methods, isLoading } = useManageBranchPaymentMethods(activeBranchId)
+  const updateMethod = useUpdateBranchPaymentMethod()
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(
+    null,
+  )
+
+  function handleToggle(id: string, isEnabled: boolean) {
+    if (!activeBranchId) return
+    setFeedback(null)
+    updateMethod.mutate(
+      { id, branchId: activeBranchId, isEnabled },
+      {
+        onSuccess: () => setFeedback({ type: 'success', text: 'Métodos de pago actualizados' }),
+        onError: (error) =>
+          setFeedback({ type: 'error', text: getErrorMessage(error, 'No se pudo guardar') }),
+      },
+    )
+  }
+
+  return (
+    <div className="animate-fade-in rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <div className="mb-1 flex items-center gap-2">
+        <CashRegisterIcon className="h-5 w-5 text-brand" />
+        <h2 className="font-serif text-lg font-semibold text-brand-dark dark:text-brand-light">
+          Métodos de pago
+        </h2>
+      </div>
+      <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
+        Elige qué métodos aparecen en el Punto de Venta de cada sucursal.
+      </p>
+
+      {branches && branches.length > 1 && (
+        <select
+          value={activeBranchId ?? ''}
+          onChange={(event) => setBranchId(event.target.value)}
+          className="mb-4 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+        >
+          {branches.map((branch) => (
+            <option key={branch.id} value={branch.id}>
+              {branch.name}
+            </option>
+          ))}
+        </select>
+      )}
+
+      {isLoading && <p className="text-sm text-gray-500 dark:text-gray-400">Cargando…</p>}
+
+      {!isLoading && (
+        <div className="space-y-3">
+          {methods?.map((method) => {
+            const meta = PAYMENT_METHOD_LABELS[method.method] ?? { label: method.method, hint: '' }
+            return (
+              <label
+                key={method.id}
+                className="flex items-start gap-3 rounded-lg border border-gray-200 p-3 transition-colors duration-150 hover:border-brand/40 dark:border-gray-600"
+              >
+                <input
+                  type="checkbox"
+                  checked={method.isEnabled}
+                  onChange={(event) => handleToggle(method.id, event.target.checked)}
+                  disabled={updateMethod.isPending}
+                  className="mt-0.5"
+                />
+                <span>
+                  <span className="block text-sm font-semibold text-gray-800 dark:text-gray-100">
+                    {meta.label}
+                  </span>
+                  {meta.hint && (
+                    <span className="block text-xs text-gray-500 dark:text-gray-400">{meta.hint}</span>
+                  )}
+                </span>
+              </label>
+            )
+          })}
+        </div>
+      )}
 
       {feedback && (
         <p className={`mt-3 text-sm ${feedback.type === 'success' ? 'text-success' : 'text-danger'}`}>

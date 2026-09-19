@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import {
   previousPeriod,
+  useReportCustomerBalances,
   useReportPaymentMethods,
   useReportProfitMargin,
   useReportSalesByBranch,
@@ -16,6 +18,7 @@ const PAYMENT_LABEL: Record<string, string> = {
   cash: 'Efectivo',
   card: 'Tarjeta',
   transfer: 'Transferencia',
+  fiado: 'Fiado',
 }
 
 const PAYMENT_COLOR: Record<string, string> = {
@@ -242,6 +245,12 @@ export default function ReportesPage() {
     isLoading: loadingProfit,
     error: profitError,
   } = useReportProfitMargin(range, selectedEmployee?.userId ?? null)
+
+  const { data: customerBalances, isLoading: loadingReceivables } = useReportCustomerBalances()
+  const totalReceivable = useMemo(
+    () => (customerBalances ?? []).reduce((sum, c) => sum + c.balance, 0),
+    [customerBalances],
+  )
 
   const profitTotals = useMemo(
     () =>
@@ -598,6 +607,41 @@ export default function ReportesPage() {
               </tfoot>
             </table>
           </div>
+        )}
+      </div>
+
+      <div className="animate-fade-in rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:p-6">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="font-serif text-base font-semibold text-brand-dark dark:text-brand-light">
+            Cuentas por cobrar
+          </h3>
+          <Link
+            to="/clientes"
+            className="text-xs font-semibold text-brand transition-colors duration-150 hover:text-brand-dark print:hidden"
+          >
+            Ver clientes →
+          </Link>
+        </div>
+        {loadingReceivables && <p className="text-sm text-gray-500 dark:text-gray-400">Cargando…</p>}
+        {!loadingReceivables && !customerBalances?.length && (
+          <p className="text-sm text-gray-400">Nadie debe nada por ahora.</p>
+        )}
+        {!!customerBalances?.length && (
+          <>
+            <p className="mb-3 font-serif text-2xl font-semibold text-danger">
+              {currency.format(totalReceivable)}
+            </p>
+            <div className="space-y-1.5 text-sm">
+              {customerBalances.slice(0, 8).map((customer) => (
+                <div key={customer.customerId} className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-300">{customer.name}</span>
+                  <span className="font-semibold text-gray-800 dark:text-gray-200">
+                    {currency.format(customer.balance)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>

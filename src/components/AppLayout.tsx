@@ -61,6 +61,7 @@ export default function AppLayout() {
     { to: '/pos', end: false, label: labels.navPos },
     ...(modules?.caja !== false ? [{ to: '/caja', end: false, label: labels.navCaja }] : []),
     { to: '/ventas', end: false, label: labels.navVentas },
+    { to: '/clientes', end: false, label: 'Clientes' },
     ...(modules?.inventario !== false && (membership?.role === 'administrador' || membership?.role === 'gerente')
       ? [{ to: '/inventario', end: false, label: 'Inventario' }]
       : []),

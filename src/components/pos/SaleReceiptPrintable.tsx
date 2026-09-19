@@ -13,6 +13,7 @@ const PAYMENT_LABEL: Record<string, string> = {
   cash: 'Efectivo',
   card: 'Tarjeta',
   transfer: 'Transferencia',
+  fiado: 'Cargo a cuenta',
 }
 
 // Formato pensado para rollo térmico de 80mm (funciona igual en 58mm, solo
@@ -75,6 +76,17 @@ export default function SaleReceiptPrintable({ receipt }: { receipt: SaleReceipt
           <span>{currency.format(payment.amount)}</span>
         </div>
       ))}
+
+      {receipt.customerCharge && (
+        <>
+          <div className="my-1.5 border-t border-dashed border-black" />
+          <p className="text-center font-bold">Cargo a cuenta — {receipt.customerCharge.customerName}</p>
+          <div className="flex justify-between">
+            <span>Saldo actual</span>
+            <span>{currency.format(receipt.customerCharge.balance)}</span>
+          </div>
+        </>
+      )}
 
       <div className="my-1.5 border-t border-dashed border-black" />
 

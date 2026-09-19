@@ -10,6 +10,7 @@ import CajaPage from './pages/CajaPage'
 import SalesHistoryPage from './pages/SalesHistoryPage'
 import InventoryPage from './pages/InventoryPage'
 import ReportesPage from './pages/ReportesPage'
+import ClientesPage from './pages/ClientesPage'
 import SettingsPage, {
   SettingsIndexRedirect,
   BrandingSection,
@@ -20,6 +21,7 @@ import SettingsPage, {
   ModulesSection,
   PublicPageSection,
   AuditLogSection,
+  PaymentMethodsSection,
 } from './pages/SettingsPage'
 
 export default function App() {
@@ -37,6 +39,7 @@ export default function App() {
             <Route path="/caja" element={<CajaPage />} />
           </Route>
           <Route path="/ventas" element={<SalesHistoryPage />} />
+          <Route path="/clientes" element={<ClientesPage />} />
           <Route
             element={<ProtectedRoute allowedRoles={['administrador', 'gerente']} requiredModule="inventario" />}
           >
@@ -52,6 +55,7 @@ export default function App() {
               <Route path="etiquetas" element={<LabelsSection />} />
               <Route path="punto-de-venta" element={<PosLayoutSection />} />
               <Route path="modulos" element={<ModulesSection />} />
+              <Route path="metodos-de-pago" element={<PaymentMethodsSection />} />
               <Route path="pagina-publica" element={<PublicPageSection />} />
               <Route path="auditoria" element={<AuditLogSection />} />
             </Route>
