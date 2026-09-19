@@ -7,6 +7,7 @@ interface CreateSaleArgs {
   cartLines: CartLine[]
   paymentMethod: PaymentMethod
   total: number
+  customerId?: string | null
 }
 
 interface CreateSaleResult {
@@ -23,9 +24,11 @@ export function useCreateSale() {
       cartLines,
       paymentMethod,
       total,
+      customerId,
     }: CreateSaleArgs): Promise<CreateSaleResult> => {
       const payload = {
         branch_id: branchId,
+        customer_id: customerId ?? null,
         items: cartLines.map((line) => ({
           item_type: line.item.itemType,
           business_product_id: line.item.itemType === 'product' ? line.item.id : null,

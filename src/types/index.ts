@@ -58,7 +58,7 @@ export interface CartLine {
   quantity: number
 }
 
-export type PaymentMethod = 'cash' | 'card' | 'transfer'
+export type PaymentMethod = 'cash' | 'card' | 'transfer' | 'fiado'
 
 export type SaleStatus = 'completed' | 'cancelled'
 

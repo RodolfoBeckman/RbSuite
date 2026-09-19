@@ -1,10 +1,13 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import BranchPicker from '../components/BranchPicker'
 import CatalogGrid from '../components/pos/CatalogGrid'
+import CustomerPicker from '../components/pos/CustomerPicker'
 import DepartmentTable from '../components/pos/DepartmentTable'
 import ScanTicket from '../components/pos/ScanTicket'
 import { useActiveBranch } from '../hooks/useActiveBranch'
 import { useBusinessModules } from '../hooks/useBusinessModules'
+import { useEnabledPaymentMethods } from '../hooks/useBranchPaymentMethods'
+import type { Customer } from '../hooks/useCustomers'
 import { usePosCatalog } from '../hooks/usePosCatalog'
 import { usePosLayout } from '../hooks/usePosLayout'
 import { useCreateSale } from '../hooks/useCreateSale'
@@ -60,11 +63,20 @@ function TransferIcon({ className }: { className?: string }) {
   )
 }
 
-const PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: typeof CashIcon }[] = [
-  { value: 'cash', label: 'Efectivo', icon: CashIcon },
-  { value: 'card', label: 'Tarjeta', icon: CardIcon },
-  { value: 'transfer', label: 'Transferencia', icon: TransferIcon },
-]
+function FiadoIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6M12 8v8M4 6h16v12H4z" />
+    </svg>
+  )
+}
+
+const PAYMENT_METHOD_META: Record<PaymentMethod, { label: string; icon: typeof CashIcon }> = {
+  cash: { label: 'Efectivo', icon: CashIcon },
+  card: { label: 'Tarjeta', icon: CardIcon },
+  transfer: { label: 'Transferencia', icon: TransferIcon },
+  fiado: { label: 'Fiado', icon: FiadoIcon },
+}
 
 export default function PosPage() {
   const activeBranchId = useActiveBranch()
@@ -81,6 +93,7 @@ export default function PosPage() {
   const [cart, setCart] = useState<Map<string, CartLine>>(new Map())
   const [cartOpen, setCartOpen] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash')
+  const [customer, setCustomer] = useState<Customer | null>(null)
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(
     null,
   )
@@ -88,6 +101,18 @@ export default function PosPage() {
 
   const createSale = useCreateSale()
   const { print, printable } = useReceiptPrinter()
+  const { data: enabledMethods } = useEnabledPaymentMethods(activeBranchId)
+
+  // Si la sucursal desactivó el método que estaba elegido (o cambiamos de
+  // sucursal), cae al primero que sí esté disponible en vez de dejar
+  // seleccionado uno que ya no se puede usar.
+  useEffect(() => {
+    if (!enabledMethods?.length) return
+    if (!enabledMethods.includes(paymentMethod)) {
+      setPaymentMethod(enabledMethods[0])
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabledMethods])
 
   const filteredCatalog = useMemo(() => {
     if (!catalog) return []
@@ -127,9 +152,10 @@ export default function PosPage() {
 
   function handleCheckout() {
     if (!activeBranchId || cartLines.length === 0) return
+    if (paymentMethod === 'fiado' && !customer) return
     setFeedback(null)
     createSale.mutate(
-      { branchId: activeBranchId, cartLines, paymentMethod, total },
+      { branchId: activeBranchId, cartLines, paymentMethod, total, customerId: customer?.id },
       {
         onSuccess: ({ saleId, folio }) => {
           setFeedback({
@@ -139,6 +165,7 @@ export default function PosPage() {
           setLastSaleId(saleId)
           setCart(new Map())
           setCartOpen(false)
+          setCustomer(null)
         },
         onError: (error) => {
           setFeedback({
@@ -277,21 +304,30 @@ export default function PosPage() {
             </div>
 
             <div className="mb-3 grid grid-cols-3 gap-2">
-              {PAYMENT_METHODS.map((method) => (
-                <button
-                  key={method.value}
-                  onClick={() => setPaymentMethod(method.value)}
-                  className={`flex flex-col items-center gap-1 rounded-lg border px-2 py-2 text-xs font-semibold transition-colors duration-150 ${
-                    paymentMethod === method.value
-                      ? 'border-brand bg-brand-tint text-brand-dark dark:bg-brand/20 dark:text-brand-light'
-                      : 'border-gray-200 text-gray-500 hover:border-brand dark:border-gray-600 dark:text-gray-400'
-                  }`}
-                >
-                  <method.icon className="h-4 w-4" />
-                  {method.label}
-                </button>
-              ))}
+              {(enabledMethods ?? ['cash', 'card', 'transfer']).map((method) => {
+                const meta = PAYMENT_METHOD_META[method]
+                return (
+                  <button
+                    key={method}
+                    onClick={() => setPaymentMethod(method)}
+                    className={`flex flex-col items-center gap-1 rounded-lg border px-2 py-2 text-xs font-semibold transition-colors duration-150 ${
+                      paymentMethod === method
+                        ? 'border-brand bg-brand-tint text-brand-dark dark:bg-brand/20 dark:text-brand-light'
+                        : 'border-gray-200 text-gray-500 hover:border-brand dark:border-gray-600 dark:text-gray-400'
+                    }`}
+                  >
+                    <meta.icon className="h-4 w-4" />
+                    {meta.label}
+                  </button>
+                )
+              })}
             </div>
+
+            {paymentMethod === 'fiado' && (
+              <div className="mb-3">
+                <CustomerPicker value={customer} onChange={setCustomer} />
+              </div>
+            )}
 
             {feedback && (
               <div className="mb-3">
@@ -311,7 +347,11 @@ export default function PosPage() {
 
             <button
               onClick={handleCheckout}
-              disabled={cartLines.length === 0 || createSale.isPending}
+              disabled={
+                cartLines.length === 0 ||
+                createSale.isPending ||
+                (paymentMethod === 'fiado' && !customer)
+              }
               className="w-full rounded-lg bg-brand py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-md disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none"
             >
               {createSale.isPending ? 'Cobrando…' : 'Cobrar'}

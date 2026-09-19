@@ -181,6 +181,33 @@ export function useReportSalesByBranch(range: DateRange) {
   })
 }
 
+export interface CustomerBalance {
+  customerId: string
+  name: string
+  phone: string | null
+  balance: number
+}
+
+// Cuentas por cobrar — no depende de un rango de fechas (es una fotografía
+// del saldo actual, no actividad de un periodo).
+export function useReportCustomerBalances() {
+  return useQuery({
+    queryKey: ['report-customer-balances'],
+    queryFn: async (): Promise<CustomerBalance[]> => {
+      const { data, error } = await supabase.rpc('report_customer_balances')
+      if (error) throw error
+      return (
+        (data ?? []) as { customer_id: string; name: string; phone: string | null; balance: number }[]
+      ).map((row) => ({
+        customerId: row.customer_id,
+        name: row.name,
+        phone: row.phone,
+        balance: Number(row.balance),
+      }))
+    },
+  })
+}
+
 // Rango previo de la misma duración, inmediatamente antes de `range` —
 // para "comparación entre periodos" (ej. este mes vs. el anterior) sin
 // necesitar una función SQL nueva: se reutiliza report_sales_summary dos
