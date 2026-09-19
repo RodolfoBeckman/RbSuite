@@ -18,19 +18,22 @@ body {
 }
 
 /* Impresión de tickets: el ticket vive siempre en el DOM (oculto) dentro
-   de #receipt-print-root, montado por SaleReceipt vía portal. Al imprimir,
-   se oculta todo lo demás y solo se muestra el ticket, posicionado para
-   ocupar la hoja completa — así no hay que tocar cada layout/página para
-   excluirse de la impresión. */
+   de #receipt-print-root. Solo mientras useReceiptPrinter dispara
+   window.print() se le agrega la clase `printing-ticket` a <body> (y se
+   quita al cerrar el diálogo, ver 'afterprint') — así esta regla no
+   afecta la impresión normal de cualquier otra página (ej. Reportes,
+   Ctrl+P). Antes aplicaba siempre y dejaba en blanco cualquier página sin
+   #receipt-print-root — bug reportado: "no veo que se pueda imprimir en
+   pdf" en Reportes. */
 @media print {
-  body * {
+  body.printing-ticket * {
     visibility: hidden;
   }
-  #receipt-print-root,
-  #receipt-print-root * {
+  body.printing-ticket #receipt-print-root,
+  body.printing-ticket #receipt-print-root * {
     visibility: visible;
   }
-  #receipt-print-root {
+  body.printing-ticket #receipt-print-root {
     position: absolute;
     top: 0;
     left: 0;

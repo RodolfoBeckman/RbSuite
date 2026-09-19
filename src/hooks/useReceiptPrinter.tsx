@@ -17,6 +17,14 @@ export function useReceiptPrinter() {
 
   useEffect(() => {
     if (!receipt) return
+
+    function cleanup() {
+      document.body.classList.remove('printing-ticket')
+      window.removeEventListener('afterprint', cleanup)
+    }
+
+    document.body.classList.add('printing-ticket')
+    window.addEventListener('afterprint', cleanup)
     window.print()
     setSaleId(null)
   }, [receipt])

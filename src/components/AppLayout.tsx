@@ -74,7 +74,7 @@ export default function AppLayout() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <header className="flex items-center justify-between gap-2 bg-brand px-3 py-3.5 text-white sm:px-6">
+      <header className="flex items-center justify-between gap-2 bg-brand px-3 py-3.5 text-white sm:px-6 print:hidden">
         <div className="flex min-w-0 items-center gap-2.5">
           <button
             onClick={() => setMenuOpen(true)}
@@ -115,7 +115,7 @@ export default function AppLayout() {
         </div>
       </header>
 
-      <nav className="hidden gap-6 overflow-x-auto border-b border-gray-200 bg-white px-6 dark:border-gray-700 dark:bg-gray-800 sm:flex">
+      <nav className="hidden gap-6 overflow-x-auto border-b border-gray-200 bg-white px-6 dark:border-gray-700 dark:bg-gray-800 sm:flex print:hidden">
         {navItems.map(({ to, end, label }) => (
           <NavLink key={to} to={to} end={end} className={({ isActive }) => navLinkClass(isActive)}>
             {label}

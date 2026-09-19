@@ -188,7 +188,11 @@ export default function ReportesPage() {
           </h2>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <p className="mb-2 hidden text-sm text-gray-600 print:block">
+          Periodo: {shortDate.format(range.from)} — {shortDate.format(range.to)}
+        </p>
+
+        <div className="flex flex-wrap items-center gap-2 print:hidden">
           {PRESETS.map((preset) => (
             <button
               key={preset.key}
@@ -262,7 +266,7 @@ export default function ReportesPage() {
           <button
             onClick={exportEmployees}
             disabled={!byEmployee?.length}
-            className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-semibold text-gray-600 transition-colors duration-150 hover:border-brand hover:text-brand-dark disabled:opacity-40 dark:border-gray-600 dark:text-gray-300"
+            className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-semibold text-gray-600 transition-colors duration-150 hover:border-brand hover:text-brand-dark disabled:opacity-40 dark:border-gray-600 dark:text-gray-300 print:hidden"
           >
             <DownloadIcon className="h-3.5 w-3.5" />
             Exportar CSV
@@ -308,7 +312,7 @@ export default function ReportesPage() {
           <button
             onClick={exportProfit}
             disabled={!profitLines?.length}
-            className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-semibold text-gray-600 transition-colors duration-150 hover:border-brand hover:text-brand-dark disabled:opacity-40 dark:border-gray-600 dark:text-gray-300"
+            className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-semibold text-gray-600 transition-colors duration-150 hover:border-brand hover:text-brand-dark disabled:opacity-40 dark:border-gray-600 dark:text-gray-300 print:hidden"
           >
             <DownloadIcon className="h-3.5 w-3.5" />
             Exportar CSV
