@@ -126,14 +126,16 @@ export default function ReportesPage() {
 
   const { data: summary, isLoading: loadingSummary } = useReportSalesSummary(range)
   const { data: trend, isLoading: loadingTrend } = useReportSalesTrend(range)
-  const { data: byEmployee, isLoading: loadingEmployees } = useReportSalesByEmployee(range)
+  const { data: byEmployee, isLoading: loadingEmployees, error: employeesError } =
+    useReportSalesByEmployee(range)
   const [selectedEmployee, setSelectedEmployee] = useState<{ userId: string; email: string } | null>(
     null,
   )
-  const { data: profitLines, isLoading: loadingProfit } = useReportProfitMargin(
-    range,
-    selectedEmployee?.userId ?? null,
-  )
+  const {
+    data: profitLines,
+    isLoading: loadingProfit,
+    error: profitError,
+  } = useReportProfitMargin(range, selectedEmployee?.userId ?? null)
 
   const profitTotals = useMemo(
     () =>
@@ -285,7 +287,12 @@ export default function ReportesPage() {
           </button>
         </div>
         {loadingEmployees && <p className="text-sm text-gray-500 dark:text-gray-400">Cargando…</p>}
-        {!loadingEmployees && !byEmployee?.length && (
+        {!!employeesError && (
+          <p className="text-sm text-danger">
+            No se pudo cargar el reporte: {employeesError instanceof Error ? employeesError.message : 'error desconocido'}
+          </p>
+        )}
+        {!loadingEmployees && !employeesError && !byEmployee?.length && (
           <p className="text-sm text-gray-400">Sin ventas en este periodo.</p>
         )}
         {!!byEmployee?.length && (
@@ -358,7 +365,12 @@ export default function ReportesPage() {
           captura el costo en Inventario para un margen más preciso.
         </p>
         {loadingProfit && <p className="text-sm text-gray-500 dark:text-gray-400">Cargando…</p>}
-        {!loadingProfit && !profitLines?.length && (
+        {!!profitError && (
+          <p className="text-sm text-danger">
+            No se pudo cargar el reporte: {profitError instanceof Error ? profitError.message : 'error desconocido'}
+          </p>
+        )}
+        {!loadingProfit && !profitError && !profitLines?.length && (
           <p className="text-sm text-gray-400">Sin ventas en este periodo.</p>
         )}
         {!!profitLines?.length && (
