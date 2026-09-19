@@ -338,7 +338,7 @@ export default function CajaPage() {
         <button
           onClick={() => {
             const amount = Number(countedAmount)
-            if (Number.isNaN(amount) || amount < 0) {
+            if (countedAmount.trim() === '' || Number.isNaN(amount) || amount < 0) {
               setFeedback({ type: 'error', text: 'Ingresa el efectivo contado' })
               return
             }
