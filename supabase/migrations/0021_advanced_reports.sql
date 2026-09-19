@@ -40,7 +40,7 @@ as $$
   from generate_series(p_from, p_to, interval '1 day') as d
   left join sales s
     on s.created_at >= d
-    and s.created_at < d + 1
+    and s.created_at < d + interval '1 day'
     and s.business_id = current_business_id()
     and s.branch_id = any(current_branch_ids())
     and s.status = 'completed'
