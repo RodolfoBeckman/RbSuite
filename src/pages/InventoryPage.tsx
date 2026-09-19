@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import BranchPicker from '../components/BranchPicker'
 import Modal from '../components/Modal'
 import ComboCreateSelect from '../components/ComboCreateSelect'
+import { getErrorMessage } from '../utils/getErrorMessage'
 import { useActiveBranch } from '../hooks/useActiveBranch'
 import { useBusinessModules } from '../hooks/useBusinessModules'
 import {
@@ -334,7 +335,7 @@ function ProductFormModal({ branchId, onClose }: { branchId: string; onClose: ()
         onError: (error) =>
           setFeedback({
             type: 'error',
-            text: error instanceof Error ? error.message : 'No se pudo agregar el producto',
+            text: getErrorMessage(error, 'No se pudo agregar el producto'),
           }),
       },
     )
@@ -673,7 +674,7 @@ function AdjustStockModal({
         onError: (error) =>
           setFeedback({
             type: 'error',
-            text: error instanceof Error ? error.message : 'No se pudo registrar',
+            text: getErrorMessage(error, 'No se pudo registrar'),
           }),
       },
     )
@@ -754,7 +755,7 @@ function ServicesSection() {
         onError: (error) =>
           setFeedback({
             type: 'error',
-            text: error instanceof Error ? error.message : 'No se pudo agregar el servicio',
+            text: getErrorMessage(error, 'No se pudo agregar el servicio'),
           }),
       },
     )

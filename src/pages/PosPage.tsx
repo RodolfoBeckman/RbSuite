@@ -11,6 +11,7 @@ import { useCreateSale } from '../hooks/useCreateSale'
 import { useLabels } from '../hooks/useLabels'
 import { useReceiptPrinter } from '../hooks/useReceiptPrinter'
 import type { CartLine, CatalogItem, PaymentMethod } from '../types'
+import { getErrorMessage } from '../utils/getErrorMessage'
 
 const currency = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' })
 
@@ -142,7 +143,7 @@ export default function PosPage() {
         onError: (error) => {
           setFeedback({
             type: 'error',
-            text: error instanceof Error ? error.message : 'No se pudo registrar la venta',
+            text: getErrorMessage(error, 'No se pudo registrar la venta'),
           })
         },
       },

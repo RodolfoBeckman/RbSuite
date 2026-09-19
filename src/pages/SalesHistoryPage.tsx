@@ -3,6 +3,7 @@ import { useAuth } from '../auth/AuthContext'
 import { hasPermission } from '../auth/permissions'
 import { useCancelSale, useSalesHistory } from '../hooks/useSales'
 import { useReceiptPrinter } from '../hooks/useReceiptPrinter'
+import { getErrorMessage } from '../utils/getErrorMessage'
 
 const currency = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' })
 const dateTime = new Intl.DateTimeFormat('es-MX', {
@@ -46,7 +47,7 @@ export default function SalesHistoryPage() {
       onError: (err) =>
         setFeedback({
           type: 'error',
-          text: err instanceof Error ? err.message : 'No se pudo cancelar la venta',
+          text: getErrorMessage(err, 'No se pudo cancelar la venta'),
         }),
     })
   }

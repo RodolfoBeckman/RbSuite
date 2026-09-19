@@ -11,6 +11,7 @@ import {
   useRegisterCashMovement,
 } from '../hooks/useCaja'
 import type { CashMovementType } from '../types'
+import { getErrorMessage } from '../utils/getErrorMessage'
 
 const currency = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' })
 
@@ -176,7 +177,7 @@ export default function CajaPage() {
                 onError: (error) =>
                   setFeedback({
                     type: 'error',
-                    text: error instanceof Error ? error.message : 'No se pudo abrir la caja',
+                    text: getErrorMessage(error, 'No se pudo abrir la caja'),
                   }),
               },
             )
@@ -278,7 +279,7 @@ export default function CajaPage() {
                 onError: (error) =>
                   setFeedback({
                     type: 'error',
-                    text: error instanceof Error ? error.message : 'No se pudo registrar el movimiento',
+                    text: getErrorMessage(error, 'No se pudo registrar el movimiento'),
                   }),
               },
             )
@@ -355,7 +356,7 @@ export default function CajaPage() {
                 onError: (error) =>
                   setFeedback({
                     type: 'error',
-                    text: error instanceof Error ? error.message : 'No se pudo cerrar la caja',
+                    text: getErrorMessage(error, 'No se pudo cerrar la caja'),
                   }),
               },
             )

@@ -10,6 +10,7 @@ import {
   type DateRange,
 } from '../hooks/useReports'
 import { downloadCsv } from '../utils/csvExport'
+import { getErrorMessage } from '../utils/getErrorMessage'
 
 const PAYMENT_LABEL: Record<string, string> = {
   cash: 'Efectivo',
@@ -398,7 +399,7 @@ export default function ReportesPage() {
           {loadingPayments && <p className="text-sm text-gray-500 dark:text-gray-400">Cargando…</p>}
           {!!paymentsError && (
             <p className="text-sm text-danger">
-              No se pudo cargar el reporte: {paymentsError instanceof Error ? paymentsError.message : 'error desconocido'}
+              No se pudo cargar el reporte: {getErrorMessage(paymentsError, 'error desconocido')}
             </p>
           )}
           {!loadingPayments && !paymentsError && <PaymentDonut data={paymentMethods ?? []} />}
@@ -411,7 +412,7 @@ export default function ReportesPage() {
           {loadingBranches && <p className="text-sm text-gray-500 dark:text-gray-400">Cargando…</p>}
           {!!branchesError && (
             <p className="text-sm text-danger">
-              No se pudo cargar el reporte: {branchesError instanceof Error ? branchesError.message : 'error desconocido'}
+              No se pudo cargar el reporte: {getErrorMessage(branchesError, 'error desconocido')}
             </p>
           )}
           {!loadingBranches && !branchesError && !byBranch?.length && (
@@ -465,7 +466,7 @@ export default function ReportesPage() {
         {loadingEmployees && <p className="text-sm text-gray-500 dark:text-gray-400">Cargando…</p>}
         {!!employeesError && (
           <p className="text-sm text-danger">
-            No se pudo cargar el reporte: {employeesError instanceof Error ? employeesError.message : 'error desconocido'}
+            No se pudo cargar el reporte: {getErrorMessage(employeesError, 'error desconocido')}
           </p>
         )}
         {!loadingEmployees && !employeesError && !byEmployee?.length && (
@@ -543,7 +544,7 @@ export default function ReportesPage() {
         {loadingProfit && <p className="text-sm text-gray-500 dark:text-gray-400">Cargando…</p>}
         {!!profitError && (
           <p className="text-sm text-danger">
-            No se pudo cargar el reporte: {profitError instanceof Error ? profitError.message : 'error desconocido'}
+            No se pudo cargar el reporte: {getErrorMessage(profitError, 'error desconocido')}
           </p>
         )}
         {!loadingProfit && !profitError && !profitLines?.length && (

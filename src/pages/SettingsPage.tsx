@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Navigate, NavLink, Outlet } from 'react-router-dom'
 import LogoUploader from '../components/LogoUploader'
+import { getErrorMessage } from '../utils/getErrorMessage'
 import { useAuth } from '../auth/AuthContext'
 import { hasPermission, PERMISSION_LABELS } from '../auth/permissions'
 import { useAuditLogs } from '../hooks/useAuditLogs'
@@ -204,7 +205,7 @@ export function BrandingSection() {
       onError: (error) =>
         setFeedback({
           type: 'error',
-          text: error instanceof Error ? error.message : 'No se pudo guardar el color',
+          text: getErrorMessage(error, 'No se pudo guardar el color'),
         }),
     })
   }
@@ -216,7 +217,7 @@ export function BrandingSection() {
       onError: (error) =>
         setFeedback({
           type: 'error',
-          text: error instanceof Error ? error.message : 'No se pudo subir el logo',
+          text: getErrorMessage(error, 'No se pudo subir el logo'),
         }),
     })
   }
@@ -318,7 +319,7 @@ export function TeamSection() {
         onError: (error) =>
           setFeedback({
             type: 'error',
-            text: error instanceof Error ? error.message : 'No se pudo enviar la invitación',
+            text: getErrorMessage(error, 'No se pudo enviar la invitación'),
           }),
       },
     )
@@ -581,7 +582,7 @@ export function BranchesSection() {
       onError: (error) =>
         setFeedback({
           type: 'error',
-          text: error instanceof Error ? error.message : 'No se pudo crear la sucursal',
+          text: getErrorMessage(error, 'No se pudo crear la sucursal'),
         }),
     })
   }
@@ -795,7 +796,7 @@ export function LabelsSection() {
       onError: (error) =>
         setFeedback({
           type: 'error',
-          text: error instanceof Error ? error.message : 'No se pudo guardar',
+          text: getErrorMessage(error, 'No se pudo guardar'),
         }),
     })
   }
@@ -877,7 +878,7 @@ export function PosLayoutSection() {
       onError: (error) =>
         setFeedback({
           type: 'error',
-          text: error instanceof Error ? error.message : 'No se pudo guardar',
+          text: getErrorMessage(error, 'No se pudo guardar'),
         }),
     })
   }
@@ -962,7 +963,7 @@ export function ModulesSection() {
         onError: (error) =>
           setFeedback({
             type: 'error',
-            text: error instanceof Error ? error.message : 'No se pudo guardar',
+            text: getErrorMessage(error, 'No se pudo guardar'),
           }),
       },
     )
@@ -1040,7 +1041,7 @@ export function PublicPageSection() {
       onError: (error) =>
         setFeedback({
           type: 'error',
-          text: error instanceof Error ? error.message : 'No se pudo guardar',
+          text: getErrorMessage(error, 'No se pudo guardar'),
         }),
     })
   }
